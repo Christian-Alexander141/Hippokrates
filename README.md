@@ -99,8 +99,8 @@ Das System ist nicht mit externen Diensten oder Krankenhausinformationssystemen 
 
 ```bash
 # Repository klonen
-git clone https://github.com/dein-name/mediconsult-ai.git
-cd mediconsult-ai
+git clone https://github.com/dein-name/Hippokrates.git
+cd Hippokrates
 
 # Umgebungsvariablen konfigurieren
 cp .env.example .env
