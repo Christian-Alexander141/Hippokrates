@@ -1,0 +1,1453 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MediConsult AI</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;1,9..40,300&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg:        #f0f2f5;
+    --surface:   #ffffff;
+    --surface2:  #f7f8fa;
+    --border:    #e4e8ed;
+    --accent:    #1a6b8a;
+    --accent2:   #22a7c8;
+    --accent-lt: #e8f5fa;
+    --text:      #111827;
+    --text2:     #4b5563;
+    --text3:     #9ca3af;
+    --ok:        #059669;
+    --ok-lt:     #d1fae5;
+    --warn:      #d97706;
+    --warn-lt:   #fef3c7;
+    --crit:      #dc2626;
+    --crit-lt:   #fee2e2;
+    --info:      #2563eb;
+    --info-lt:   #dbeafe;
+    --radius:    10px;
+    --radius-lg: 16px;
+    --shadow:    0 1px 3px rgba(0,0,0,.07), 0 4px 12px rgba(0,0,0,.05);
+    --shadow-lg: 0 8px 32px rgba(0,0,0,.10);
+    --font:      'DM Sans', sans-serif;
+    --mono:      'DM Mono', monospace;
+    --nav-w:     220px;
+    --header-h:  60px;
+  }
+
+  body {
+    font-family: var(--font);
+    background: var(--bg);
+    color: var(--text);
+    font-size: 14px;
+    line-height: 1.6;
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+  }
+
+  /* ── HEADER ─────────────────────────────────────── */
+  header {
+    height: var(--header-h);
+    background: var(--accent);
+    display: flex;
+    align-items: center;
+    padding: 0 24px;
+    gap: 16px;
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    z-index: 100;
+    box-shadow: 0 1px 0 rgba(255,255,255,.08);
+  }
+  .logo {
+    display: flex; align-items: center; gap: 10px;
+    color: #fff; font-size: 17px; font-weight: 500; letter-spacing: -.3px;
+  }
+  .logo-icon {
+    width: 32px; height: 32px;
+    background: rgba(255,255,255,.15);
+    border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .logo-icon svg { width: 18px; height: 18px; stroke: #fff; fill: none; stroke-width: 2; }
+  .logo span { color: rgba(255,255,255,.6); font-weight: 300; }
+  .header-spacer { flex: 1; }
+  .header-search {
+    display: flex; align-items: center; gap: 8px;
+    background: rgba(255,255,255,.12);
+    border: 1px solid rgba(255,255,255,.2);
+    border-radius: 8px;
+    padding: 6px 12px;
+    color: #fff;
+    font-family: var(--font); font-size: 13px;
+    width: 240px;
+  }
+  .header-search input {
+    background: none; border: none; outline: none;
+    color: #fff; font-family: var(--font); font-size: 13px; width: 100%;
+  }
+  .header-search input::placeholder { color: rgba(255,255,255,.5); }
+  .header-search svg { width: 15px; height: 15px; stroke: rgba(255,255,255,.6); flex-shrink: 0; }
+  .header-actions { display: flex; align-items: center; gap: 8px; }
+  .btn-icon {
+    width: 34px; height: 34px;
+    border: none; background: rgba(255,255,255,.12);
+    border-radius: 8px; cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    color: #fff; transition: background .15s;
+  }
+  .btn-icon:hover { background: rgba(255,255,255,.22); }
+  .btn-icon svg { width: 16px; height: 16px; stroke: #fff; fill: none; stroke-width: 2; }
+  .avatar {
+    width: 34px; height: 34px; border-radius: 50%;
+    background: rgba(255,255,255,.2);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 13px; font-weight: 500; color: #fff; cursor: pointer;
+    border: 1.5px solid rgba(255,255,255,.3);
+  }
+
+  /* ── LAYOUT ─────────────────────────────────────── */
+  .app-body {
+    display: flex;
+    margin-top: var(--header-h);
+    min-height: calc(100vh - var(--header-h));
+  }
+
+  /* ── SIDEBAR ─────────────────────────────────────── */
+  nav {
+    width: var(--nav-w);
+    background: var(--surface);
+    border-right: 1px solid var(--border);
+    position: fixed;
+    top: var(--header-h);
+    left: 0; bottom: 0;
+    overflow-y: auto;
+    padding: 16px 12px;
+    display: flex; flex-direction: column; gap: 2px;
+  }
+  .nav-section {
+    font-size: 10px; font-weight: 500; letter-spacing: .08em;
+    color: var(--text3); text-transform: uppercase;
+    padding: 12px 10px 6px;
+  }
+  .nav-item {
+    display: flex; align-items: center; gap: 10px;
+    padding: 9px 10px;
+    border-radius: var(--radius);
+    cursor: pointer; color: var(--text2);
+    font-size: 13.5px; font-weight: 400;
+    transition: background .12s, color .12s;
+    border: none; background: none; width: 100%; text-align: left;
+  }
+  .nav-item svg { width: 16px; height: 16px; stroke: currentColor; fill: none; stroke-width: 2; flex-shrink: 0; }
+  .nav-item:hover { background: var(--surface2); color: var(--text); }
+  .nav-item.active { background: var(--accent-lt); color: var(--accent); font-weight: 500; }
+  .nav-item.active svg { stroke: var(--accent); }
+  .nav-badge {
+    margin-left: auto; background: var(--crit);
+    color: #fff; font-size: 10px; font-weight: 500;
+    padding: 1px 6px; border-radius: 20px;
+  }
+  .nav-spacer { flex: 1; }
+
+  /* ── MAIN ─────────────────────────────────────── */
+  main {
+    margin-left: var(--nav-w);
+    flex: 1;
+    padding: 28px;
+    display: flex; flex-direction: column; gap: 24px;
+  }
+
+  /* ── PAGE HEADER ─────────────────────────────────── */
+  .page-header {
+    display: flex; align-items: flex-start; justify-content: space-between; gap: 16px;
+  }
+  .page-title { font-size: 22px; font-weight: 500; letter-spacing: -.4px; }
+  .page-sub { color: var(--text2); font-size: 13px; margin-top: 2px; }
+  .btn {
+    display: inline-flex; align-items: center; gap: 7px;
+    padding: 9px 18px; border-radius: 8px;
+    font-family: var(--font); font-size: 13.5px; font-weight: 500;
+    cursor: pointer; border: none; transition: all .15s;
+    white-space: nowrap;
+  }
+  .btn svg { width: 15px; height: 15px; stroke: currentColor; fill: none; stroke-width: 2; }
+  .btn-primary { background: var(--accent); color: #fff; }
+  .btn-primary:hover { background: #155a75; }
+  .btn-secondary { background: var(--surface); color: var(--text); border: 1px solid var(--border); }
+  .btn-secondary:hover { background: var(--surface2); }
+  .btn-danger { background: var(--crit-lt); color: var(--crit); }
+  .btn-danger:hover { background: #fecaca; }
+
+  /* ── STAT CARDS ─────────────────────────────────── */
+  .stats-grid {
+    display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px;
+  }
+  .stat-card {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: var(--radius-lg); padding: 20px;
+    display: flex; flex-direction: column; gap: 8px;
+    box-shadow: var(--shadow);
+  }
+  .stat-label { font-size: 12px; color: var(--text3); font-weight: 500; letter-spacing: .04em; text-transform: uppercase; }
+  .stat-value { font-size: 28px; font-weight: 300; letter-spacing: -1px; color: var(--text); }
+  .stat-meta { font-size: 12px; color: var(--text3); }
+  .stat-dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; margin-right: 5px; }
+
+  /* ── CARD ────────────────────────────────────────── */
+  .card {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: var(--radius-lg); box-shadow: var(--shadow);
+    overflow: hidden;
+  }
+  .card-header {
+    padding: 18px 20px;
+    border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: space-between; gap: 12px;
+  }
+  .card-title { font-size: 15px; font-weight: 500; }
+  .card-body { padding: 20px; }
+
+  /* ── PATIENT CARD ─────────────────────────────────── */
+  .patient-banner {
+    background: linear-gradient(135deg, var(--accent) 0%, #0e4f6a 100%);
+    border-radius: var(--radius-lg);
+    padding: 24px;
+    color: #fff;
+    display: flex; align-items: center; gap: 20px;
+    box-shadow: var(--shadow-lg);
+  }
+  .patient-avatar {
+    width: 64px; height: 64px; border-radius: 50%;
+    background: rgba(255,255,255,.15);
+    border: 2px solid rgba(255,255,255,.3);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 22px; font-weight: 300;
+    flex-shrink: 0;
+  }
+  .patient-name { font-size: 20px; font-weight: 500; letter-spacing: -.3px; }
+  .patient-meta { font-size: 13px; color: rgba(255,255,255,.7); margin-top: 3px; }
+  .patient-tags { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
+  .tag {
+    font-size: 11px; font-weight: 500;
+    padding: 3px 10px; border-radius: 20px;
+    background: rgba(255,255,255,.15);
+    color: rgba(255,255,255,.9);
+    border: 1px solid rgba(255,255,255,.2);
+  }
+  .patient-stats {
+    margin-left: auto; display: flex; gap: 28px;
+    text-align: center; flex-shrink: 0;
+  }
+  .pstat-val { font-size: 22px; font-weight: 300; }
+  .pstat-lbl { font-size: 11px; color: rgba(255,255,255,.6); margin-top: 2px; }
+
+  /* ── LAB VALUE BARS ──────────────────────────────── */
+  .lab-grid {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 12px;
+  }
+  .lab-item { display: flex; flex-direction: column; gap: 6px; }
+  .lab-row { display: flex; align-items: center; justify-content: space-between; }
+  .lab-name { font-size: 13px; font-weight: 500; }
+  .lab-val { font-family: var(--mono); font-size: 13px; color: var(--text2); }
+  .lab-bar-track {
+    height: 6px; background: var(--surface2);
+    border-radius: 99px; position: relative; overflow: visible;
+  }
+  .lab-bar-ref {
+    position: absolute; top: 0; height: 100%;
+    background: var(--ok-lt); border-radius: 99px;
+  }
+  .lab-bar-fill {
+    position: absolute; top: 0; height: 100%;
+    border-radius: 99px; transition: width .6s ease;
+    max-width: 100%;
+  }
+  .lab-bar-fill.ok   { background: var(--ok); }
+  .lab-bar-fill.warn { background: var(--warn); }
+  .lab-bar-fill.crit { background: var(--crit); }
+  .lab-range { font-size: 11px; color: var(--text3); }
+
+  /* ── BADGE ───────────────────────────────────────── */
+  .badge {
+    display: inline-flex; align-items: center; gap: 4px;
+    font-size: 11px; font-weight: 500; padding: 2px 8px;
+    border-radius: 20px;
+  }
+  .badge-ok   { background: var(--ok-lt);   color: var(--ok); }
+  .badge-warn { background: var(--warn-lt);  color: var(--warn); }
+  .badge-crit { background: var(--crit-lt);  color: var(--crit); }
+  .badge-info { background: var(--info-lt);  color: var(--info); }
+  .badge-neu  { background: var(--accent-lt); color: var(--accent); }
+
+  /* ── ALERT BOX ───────────────────────────────────── */
+  .alert {
+    display: flex; align-items: flex-start; gap: 12px;
+    padding: 14px 16px; border-radius: var(--radius);
+    border-left: 3px solid;
+  }
+  .alert svg { width: 16px; height: 16px; flex-shrink: 0; margin-top: 1px; }
+  .alert-crit { background: var(--crit-lt); border-color: var(--crit); color: var(--crit); }
+  .alert-warn { background: var(--warn-lt); border-color: var(--warn); color: var(--warn); }
+  .alert-title { font-weight: 500; font-size: 13px; }
+  .alert-body  { font-size: 12.5px; color: var(--text2); margin-top: 2px; }
+
+  /* ── TABLE ───────────────────────────────────────── */
+  table { width: 100%; border-collapse: collapse; }
+  th {
+    text-align: left; font-size: 11px; font-weight: 500;
+    letter-spacing: .06em; text-transform: uppercase;
+    color: var(--text3); padding: 10px 14px;
+    border-bottom: 1px solid var(--border);
+  }
+  td { padding: 12px 14px; border-bottom: 1px solid var(--border); font-size: 13.5px; }
+  tr:last-child td { border-bottom: none; }
+  tr:hover td { background: var(--surface2); }
+  .td-mono { font-family: var(--mono); font-size: 13px; }
+
+  /* ── TABS ────────────────────────────────────────── */
+  .tabs { display: flex; gap: 2px; }
+  .tab {
+    padding: 7px 16px; border-radius: 8px;
+    font-size: 13px; font-weight: 400; cursor: pointer;
+    border: none; background: none; color: var(--text2);
+    transition: all .12s;
+  }
+  .tab:hover { background: var(--surface2); color: var(--text); }
+  .tab.active { background: var(--accent); color: #fff; font-weight: 500; }
+
+  /* ── FORM ────────────────────────────────────────── */
+  .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  .form-grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; }
+  .form-group { display: flex; flex-direction: column; gap: 5px; }
+  .form-group.full { grid-column: 1 / -1; }
+  label { font-size: 12px; font-weight: 500; color: var(--text2); }
+  input, select, textarea {
+    font-family: var(--font); font-size: 13.5px;
+    padding: 9px 12px; border-radius: 8px;
+    border: 1px solid var(--border); background: var(--surface2);
+    color: var(--text); outline: none; width: 100%;
+    transition: border-color .15s, box-shadow .15s;
+  }
+  input:focus, select:focus, textarea:focus {
+    border-color: var(--accent2);
+    box-shadow: 0 0 0 3px rgba(34,167,200,.12);
+    background: #fff;
+  }
+  textarea { resize: vertical; min-height: 88px; }
+
+  /* ── UPLOAD ZONE ─────────────────────────────────── */
+  .upload-zone {
+    border: 1.5px dashed var(--border);
+    border-radius: var(--radius);
+    padding: 32px; text-align: center;
+    cursor: pointer; transition: border-color .15s, background .15s;
+    background: var(--surface2);
+  }
+  .upload-zone:hover { border-color: var(--accent2); background: var(--accent-lt); }
+  .upload-icon { width: 40px; height: 40px; margin: 0 auto 12px; opacity: .4; }
+  .upload-icon svg { width: 40px; height: 40px; stroke: var(--accent); fill: none; stroke-width: 1.5; }
+  .upload-title { font-size: 14px; font-weight: 500; color: var(--text); }
+  .upload-sub { font-size: 12px; color: var(--text3); margin-top: 4px; }
+
+  /* ── SECTION ROW ─────────────────────────────────── */
+  .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+  .three-col { display: grid; grid-template-columns: repeat(3,1fr); gap: 20px; }
+
+  /* ── KI DIAGNOSE ─────────────────────────────────── */
+  .ki-panel {
+    background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+    border: 1px solid #bae6fd; border-radius: var(--radius-lg);
+    padding: 20px;
+  }
+  .ki-header { display: flex; align-items: center; gap: 10px; margin-bottom: 16px; }
+  .ki-dot { width: 10px; height: 10px; border-radius: 50%; background: var(--ok); animation: pulse 2s infinite; }
+  @keyframes pulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:.6;transform:scale(1.15)} }
+  .ki-title { font-size: 14px; font-weight: 500; color: var(--accent); }
+  .ki-input-row { display: flex; gap: 10px; }
+  .ki-input {
+    flex: 1; padding: 10px 14px; border-radius: 8px;
+    border: 1px solid #bae6fd; background: #fff;
+    font-family: var(--font); font-size: 13.5px; outline: none;
+    color: var(--text);
+  }
+  .ki-input:focus { border-color: var(--accent2); box-shadow: 0 0 0 3px rgba(34,167,200,.1); }
+  .ki-result {
+    margin-top: 16px; padding: 14px; background: #fff;
+    border-radius: var(--radius); border: 1px solid #bae6fd;
+  }
+  .ki-result-title { font-size: 12px; font-weight: 500; color: var(--text3); margin-bottom: 8px; text-transform: uppercase; letter-spacing: .06em; }
+  .ki-model-row { display: flex; align-items: center; gap: 10px; padding: 6px 0; border-bottom: 1px solid var(--border); }
+  .ki-model-row:last-child { border-bottom: none; }
+  .ki-model-name { font-size: 12px; font-family: var(--mono); color: var(--text3); width: 64px; flex-shrink: 0; }
+  .ki-model-bar { flex: 1; height: 4px; background: var(--surface2); border-radius: 99px; overflow: hidden; }
+  .ki-model-fill { height: 100%; border-radius: 99px; background: var(--accent2); }
+  .ki-model-score { font-family: var(--mono); font-size: 12px; color: var(--text2); width: 36px; text-align: right; }
+  .consensus-badge {
+    display: flex; align-items: center; gap: 8px; margin-top: 12px;
+    padding: 10px 14px; background: var(--ok-lt);
+    border-radius: 8px; border: 1px solid #a7f3d0;
+  }
+  .consensus-badge svg { width: 16px; height: 16px; stroke: var(--ok); }
+  .consensus-text { font-size: 13px; font-weight: 500; color: var(--ok); }
+
+  /* ── SEARCH PAGE ─────────────────────────────────── */
+  .search-bar-wrap {
+    position: relative;
+  }
+  .search-bar-wrap svg {
+    position: absolute; left: 14px; top: 50%; transform: translateY(-50%);
+    width: 16px; height: 16px; stroke: var(--text3); fill: none; stroke-width: 2;
+  }
+  .search-bar-wrap input {
+    padding-left: 40px; font-size: 15px; height: 48px;
+    border-radius: var(--radius-lg); border: 1px solid var(--border);
+    background: var(--surface); box-shadow: var(--shadow);
+  }
+  .search-filters { display: flex; gap: 8px; flex-wrap: wrap; }
+  .filter-chip {
+    display: flex; align-items: center; gap: 6px;
+    padding: 6px 12px; border-radius: 20px;
+    font-size: 12px; font-weight: 500; cursor: pointer;
+    border: 1px solid var(--border); background: var(--surface);
+    color: var(--text2); transition: all .12s;
+  }
+  .filter-chip:hover { border-color: var(--accent2); color: var(--accent); background: var(--accent-lt); }
+  .filter-chip.active { background: var(--accent); color: #fff; border-color: var(--accent); }
+  .filter-chip svg { width: 13px; height: 13px; stroke: currentColor; fill: none; stroke-width: 2; }
+  .patient-list-item {
+    display: flex; align-items: center; gap: 14px;
+    padding: 14px 20px; border-bottom: 1px solid var(--border);
+    cursor: pointer; transition: background .12s;
+  }
+  .patient-list-item:last-child { border-bottom: none; }
+  .patient-list-item:hover { background: var(--surface2); }
+  .pli-avatar {
+    width: 40px; height: 40px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 14px; font-weight: 500; flex-shrink: 0;
+  }
+  .pli-name { font-size: 14px; font-weight: 500; }
+  .pli-meta { font-size: 12px; color: var(--text3); margin-top: 1px; }
+  .pli-right { margin-left: auto; display: flex; flex-direction: column; align-items: flex-end; gap: 4px; }
+  .pli-date { font-size: 11px; color: var(--text3); }
+
+  /* ── HIDDEN VIEWS ─────────────────────────────────── */
+  .view { display: none; flex-direction: column; gap: 24px; }
+  .view.active { display: flex; }
+
+  /* ── MINI CHART (sparkline) ──────────────────────── */
+  .sparkline-wrap { padding: 4px 0; }
+
+  /* ── VITAMINE AMPEL ──────────────────────────────── */
+  .vitamin-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+  .vitamin-card {
+    border: 1px solid var(--border); border-radius: var(--radius);
+    padding: 14px; text-align: center;
+  }
+  .vitamin-circle {
+    width: 52px; height: 52px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 18px; font-weight: 300; font-family: var(--mono);
+    margin: 0 auto 8px;
+  }
+  .vitamin-name { font-size: 13px; font-weight: 500; }
+  .vitamin-unit { font-size: 11px; color: var(--text3); margin-top: 2px; }
+
+  /* ── SCROLL ──────────────────────────────────────── */
+  nav::-webkit-scrollbar { width: 3px; }
+  nav::-webkit-scrollbar-track { background: transparent; }
+  nav::-webkit-scrollbar-thumb { background: var(--border); border-radius: 99px; }
+
+  /* ── DIVIDER ─────────────────────────────────────── */
+  .divider { height: 1px; background: var(--border); }
+
+  /* ── TOOLTIP-LIKE DATA ────────────────────────────── */
+  .data-row { display: flex; justify-content: space-between; align-items: center; padding: 9px 0; border-bottom: 1px solid var(--border); }
+  .data-row:last-child { border-bottom: none; }
+  .data-key { font-size: 13px; color: var(--text2); }
+  .data-val { font-family: var(--mono); font-size: 13px; font-weight: 500; }
+
+  /* ── RESPONSIVE TWEAKS ───────────────────────────── */
+  @media (max-width: 1100px) {
+    .stats-grid { grid-template-columns: repeat(2, 1fr); }
+    .three-col { grid-template-columns: 1fr 1fr; }
+  }
+  @media (max-width: 768px) {
+    :root { --nav-w: 0px; }
+    nav { display: none; }
+    .two-col, .three-col, .lab-grid, .vitamin-grid { grid-template-columns: 1fr; }
+    .patient-stats { display: none; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ═══════════════════ HEADER ═══════════════════ -->
+<header>
+  <div class="logo">
+    <div class="logo-icon">
+      <svg viewBox="0 0 24 24"><path d="M12 2L12 6M12 18L12 22M4.93 4.93L7.76 7.76M16.24 16.24L19.07 19.07M2 12L6 12M18 12L22 12" stroke-linecap="round"/><circle cx="12" cy="12" r="4"/></svg>
+    </div>
+    MediConsult <span>AI</span>
+  </div>
+  <div class="header-spacer"></div>
+  <div class="header-search">
+    <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35" stroke-linecap="round"/></svg>
+    <input placeholder="Patient suchen …" oninput="globalSearch(this.value)">
+  </div>
+  <div class="header-actions">
+    <button class="btn-icon" title="Benachrichtigungen">
+      <svg viewBox="0 0 24 24"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9M13.73 21a2 2 0 0 1-3.46 0" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </button>
+    <div class="avatar">Dr</div>
+  </div>
+</header>
+
+<!-- ═══════════════════ BODY ═══════════════════ -->
+<div class="app-body">
+
+<!-- ── SIDEBAR ── -->
+<nav>
+  <div class="nav-section">Übersicht</div>
+  <button class="nav-item active" onclick="showView('dashboard')">
+    <svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/></svg>
+    Dashboard
+  </button>
+  <button class="nav-item" onclick="showView('suche')">
+    <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35" stroke-linecap="round"/></svg>
+    Patientensuche
+  </button>
+
+  <div class="nav-section">Administration</div>
+  <button class="nav-item" onclick="showView('admin')">
+    <svg viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+    Patient anlegen
+    <span class="nav-badge">2</span>
+  </button>
+  <button class="nav-item" onclick="showView('daten')">
+    <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+    Daten & Befunde
+  </button>
+  <button class="nav-item" onclick="showView('labor')">
+    <svg viewBox="0 0 24 24"><path d="M9 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V5a2 2 0 0 0-2-2h-4"/><path d="M9 3a2 2 0 0 0 4 0"/><path d="M9 3a2 2 0 0 1 4 0"/><path d="M12 11v6m-3-3h6"/></svg>
+    Laborwerte eingeben
+  </button>
+
+  <div class="nav-section">KI-System</div>
+  <button class="nav-item" onclick="showView('diagnose')">
+    <svg viewBox="0 0 24 24"><path d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20z"/><path d="M12 8v4l3 3"/></svg>
+    KI-Diagnose
+  </button>
+  <button class="nav-item">
+    <svg viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+    Verlauf & Trends
+  </button>
+
+  <div class="nav-spacer"></div>
+  <div class="divider" style="margin: 8px 0"></div>
+  <button class="nav-item">
+    <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M4.93 4.93a10 10 0 0 0 0 14.14"/></svg>
+    Einstellungen
+  </button>
+</nav>
+
+<!-- ═══════════════════ MAIN ═══════════════════ -->
+<main>
+
+<!-- ════════════════════════════════════════════════════════ -->
+<!-- VIEW: DASHBOARD                                         -->
+<!-- ════════════════════════════════════════════════════════ -->
+<div class="view active" id="view-dashboard">
+
+  <div class="page-header">
+    <div>
+      <div class="page-title">Patientendashboard</div>
+      <div class="page-sub">Übersicht · Dr. med. Hoffmann · Heute, 17. Mai 2026</div>
+    </div>
+    <div style="display:flex;gap:10px">
+      <button class="btn btn-secondary" onclick="showView('suche')">
+        <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35" stroke-linecap="round"/></svg>
+        Patient wechseln
+      </button>
+      <button class="btn btn-primary" onclick="showView('diagnose')">
+        <svg viewBox="0 0 24 24"><path d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20z"/><path d="M12 8v4l3 3"/></svg>
+        KI-Diagnose starten
+      </button>
+    </div>
+  </div>
+
+  <!-- STAT CARDS -->
+  <div class="stats-grid">
+    <div class="stat-card">
+      <div class="stat-label">Aktive Patienten</div>
+      <div class="stat-value">148</div>
+      <div class="stat-meta"><span class="stat-dot" style="background:var(--ok)"></span>12 heute aufgenommen</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Kritische Befunde</div>
+      <div class="stat-value" style="color:var(--crit)">7</div>
+      <div class="stat-meta"><span class="stat-dot" style="background:var(--crit)"></span>Sofortige Überprüfung nötig</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">KI-Anfragen heute</div>
+      <div class="stat-value">34</div>
+      <div class="stat-meta"><span class="stat-dot" style="background:var(--accent2)"></span>Ø 3 Modelle pro Anfrage</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Konsensus-Rate</div>
+      <div class="stat-value" style="color:var(--ok)">91%</div>
+      <div class="stat-meta"><span class="stat-dot" style="background:var(--ok)"></span>Übereinstimmung LLMs</div>
+    </div>
+  </div>
+
+  <!-- PATIENT BANNER -->
+  <div class="patient-banner">
+    <div class="patient-avatar">MK</div>
+    <div>
+      <div class="patient-name">Maria Kowalski</div>
+      <div class="patient-meta">Geb. 14.03.1968 · w · Pat-ID 00-4821</div>
+      <div class="patient-tags">
+        <span class="tag">Diabetes Typ 2</span>
+        <span class="tag">Hypertonie</span>
+        <span class="tag">Hypothyreose</span>
+        <span class="tag">Letzte Untersuchung: 12.05.2026</span>
+      </div>
+    </div>
+    <div class="patient-stats">
+      <div><div class="pstat-val">58 kg</div><div class="pstat-lbl">Gewicht</div></div>
+      <div><div class="pstat-val">162 cm</div><div class="pstat-lbl">Größe</div></div>
+      <div><div class="pstat-val">22.1</div><div class="pstat-lbl">BMI</div></div>
+    </div>
+  </div>
+
+  <!-- ALERTS -->
+  <div style="display:flex;flex-direction:column;gap:8px">
+    <div class="alert alert-crit">
+      <svg viewBox="0 0 24 24" style="stroke:var(--crit);fill:none;stroke-width:2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+      <div>
+        <div class="alert-title">Kritisch: HbA1c 9,4 % — stark erhöht</div>
+        <div class="alert-body">Zielwert &lt; 7,0 %. Anpassung der antidiabetischen Therapie empfohlen.</div>
+      </div>
+    </div>
+    <div class="alert alert-warn">
+      <svg viewBox="0 0 24 24" style="stroke:var(--warn);fill:none;stroke-width:2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+      <div>
+        <div class="alert-title">Vitamin D: 18 ng/ml — Mangel</div>
+        <div class="alert-body">Referenzwert 30–80 ng/ml. Substitution 2000 IE/Tag erwägen.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- LAB VALUES + VITAMINS -->
+  <div class="two-col">
+
+    <!-- Spurenelemente -->
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title">Spurenelemente</div>
+        <span class="badge badge-warn">2 auffällig</span>
+      </div>
+      <div class="card-body">
+        <div class="lab-grid">
+          <!-- Zink -->
+          <div class="lab-item">
+            <div class="lab-row">
+              <span class="lab-name">Zink (Zn)</span>
+              <span class="lab-val">0,72 mg/l <span class="badge badge-warn" style="font-size:10px">↓</span></span>
+            </div>
+            <div class="lab-bar-track">
+              <div class="lab-bar-ref" style="left:30%;width:50%"></div>
+              <div class="lab-bar-fill warn" style="width:36%"></div>
+            </div>
+            <div class="lab-range">Ref: 0,8–1,2 mg/l</div>
+          </div>
+          <!-- Eisen -->
+          <div class="lab-item">
+            <div class="lab-row">
+              <span class="lab-name">Eisen (Fe)</span>
+              <span class="lab-val">14,2 µmol/l <span class="badge badge-ok" style="font-size:10px">✓</span></span>
+            </div>
+            <div class="lab-bar-track">
+              <div class="lab-bar-ref" style="left:25%;width:55%"></div>
+              <div class="lab-bar-fill ok" style="width:55%"></div>
+            </div>
+            <div class="lab-range">Ref: 11–25 µmol/l</div>
+          </div>
+          <!-- Magnesium -->
+          <div class="lab-item">
+            <div class="lab-row">
+              <span class="lab-name">Magnesium (Mg)</span>
+              <span class="lab-val">0,61 mmol/l <span class="badge badge-warn" style="font-size:10px">↓</span></span>
+            </div>
+            <div class="lab-bar-track">
+              <div class="lab-bar-ref" style="left:28%;width:44%"></div>
+              <div class="lab-bar-fill warn" style="width:32%"></div>
+            </div>
+            <div class="lab-range">Ref: 0,7–1,0 mmol/l</div>
+          </div>
+          <!-- Selen -->
+          <div class="lab-item">
+            <div class="lab-row">
+              <span class="lab-name">Selen (Se)</span>
+              <span class="lab-val">112 µg/l <span class="badge badge-ok" style="font-size:10px">✓</span></span>
+            </div>
+            <div class="lab-bar-track">
+              <div class="lab-bar-ref" style="left:20%;width:65%"></div>
+              <div class="lab-bar-fill ok" style="width:62%"></div>
+            </div>
+            <div class="lab-range">Ref: 80–150 µg/l</div>
+          </div>
+          <!-- Kupfer -->
+          <div class="lab-item">
+            <div class="lab-row">
+              <span class="lab-name">Kupfer (Cu)</span>
+              <span class="lab-val">13,5 µmol/l <span class="badge badge-ok" style="font-size:10px">✓</span></span>
+            </div>
+            <div class="lab-bar-track">
+              <div class="lab-bar-ref" style="left:22%;width:56%"></div>
+              <div class="lab-bar-fill ok" style="width:58%"></div>
+            </div>
+            <div class="lab-range">Ref: 11–22 µmol/l</div>
+          </div>
+          <!-- Jod -->
+          <div class="lab-item">
+            <div class="lab-row">
+              <span class="lab-name">Jod (I)</span>
+              <span class="lab-val">88 µg/l <span class="badge badge-ok" style="font-size:10px">✓</span></span>
+            </div>
+            <div class="lab-bar-track">
+              <div class="lab-bar-ref" style="left:25%;width:50%"></div>
+              <div class="lab-bar-fill ok" style="width:52%"></div>
+            </div>
+            <div class="lab-range">Ref: 60–120 µg/l</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Vitaminversorgung -->
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title">Vitaminversorgung</div>
+        <span class="badge badge-crit">1 kritisch</span>
+      </div>
+      <div class="card-body">
+        <div class="vitamin-grid">
+          <div class="vitamin-card">
+            <div class="vitamin-circle" style="background:var(--crit-lt);color:var(--crit)">18</div>
+            <div class="vitamin-name">Vitamin D</div>
+            <div class="vitamin-unit">ng/ml · Mangel</div>
+          </div>
+          <div class="vitamin-card">
+            <div class="vitamin-circle" style="background:var(--ok-lt);color:var(--ok)">342</div>
+            <div class="vitamin-name">Vitamin B12</div>
+            <div class="vitamin-unit">pg/ml · Normal</div>
+          </div>
+          <div class="vitamin-card">
+            <div class="vitamin-circle" style="background:var(--warn-lt);color:var(--warn)">4,2</div>
+            <div class="vitamin-name">Folsäure</div>
+            <div class="vitamin-unit">ng/ml · Grenzwertig</div>
+          </div>
+          <div class="vitamin-card">
+            <div class="vitamin-circle" style="background:var(--ok-lt);color:var(--ok)">88</div>
+            <div class="vitamin-name">Vitamin C</div>
+            <div class="vitamin-unit">µmol/l · Normal</div>
+          </div>
+          <div class="vitamin-card">
+            <div class="vitamin-circle" style="background:var(--ok-lt);color:var(--ok)">1,1</div>
+            <div class="vitamin-name">Vitamin K2</div>
+            <div class="vitamin-unit">ng/ml · Normal</div>
+          </div>
+          <div class="vitamin-card">
+            <div class="vitamin-circle" style="background:var(--ok-lt);color:var(--ok)">0,9</div>
+            <div class="vitamin-name">Vitamin B6</div>
+            <div class="vitamin-unit">mg/l · Normal</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- KRITISCHE BLUTWERTE -->
+  <div class="card">
+    <div class="card-header">
+      <div class="card-title">Kritische Blutwerte</div>
+      <div style="display:flex;gap:8px">
+        <span class="badge badge-crit">3 kritisch</span>
+        <span class="badge badge-warn">2 grenzwertig</span>
+      </div>
+    </div>
+    <table>
+      <thead>
+        <tr>
+          <th>Parameter</th>
+          <th>Wert</th>
+          <th>Einheit</th>
+          <th>Referenzbereich</th>
+          <th>Abweichung</th>
+          <th>Status</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td style="font-weight:500">HbA1c</td>
+          <td class="td-mono" style="color:var(--crit);font-weight:500">9,4</td>
+          <td class="td-mono">%</td>
+          <td class="td-mono">&lt; 7,0</td>
+          <td class="td-mono" style="color:var(--crit)">+2,4</td>
+          <td><span class="badge badge-crit">Kritisch ↑↑</span></td>
+        </tr>
+        <tr>
+          <td style="font-weight:500">Kreatinin</td>
+          <td class="td-mono" style="color:var(--warn);font-weight:500">1,28</td>
+          <td class="td-mono">mg/dl</td>
+          <td class="td-mono">0,5–1,1</td>
+          <td class="td-mono" style="color:var(--warn)">+0,18</td>
+          <td><span class="badge badge-warn">Erhöht ↑</span></td>
+        </tr>
+        <tr>
+          <td style="font-weight:500">TSH</td>
+          <td class="td-mono" style="color:var(--crit);font-weight:500">6,8</td>
+          <td class="td-mono">mU/l</td>
+          <td class="td-mono">0,4–4,0</td>
+          <td class="td-mono" style="color:var(--crit)">+2,8</td>
+          <td><span class="badge badge-crit">Kritisch ↑↑</span></td>
+        </tr>
+        <tr>
+          <td style="font-weight:500">Hämoglobin</td>
+          <td class="td-mono" style="color:var(--warn);font-weight:500">11,4</td>
+          <td class="td-mono">g/dl</td>
+          <td class="td-mono">12,0–16,0</td>
+          <td class="td-mono" style="color:var(--warn)">-0,6</td>
+          <td><span class="badge badge-warn">Leicht ↓</span></td>
+        </tr>
+        <tr>
+          <td style="font-weight:500">CRP</td>
+          <td class="td-mono" style="color:var(--crit);font-weight:500">18,4</td>
+          <td class="td-mono">mg/l</td>
+          <td class="td-mono">&lt; 5,0</td>
+          <td class="td-mono" style="color:var(--crit)">+13,4</td>
+          <td><span class="badge badge-crit">Kritisch ↑↑</span></td>
+        </tr>
+        <tr>
+          <td style="font-weight:500">Cholesterin</td>
+          <td class="td-mono">4,8</td>
+          <td class="td-mono">mmol/l</td>
+          <td class="td-mono">&lt; 5,2</td>
+          <td class="td-mono" style="color:var(--text3)">—</td>
+          <td><span class="badge badge-ok">Normal</span></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+</div><!-- /view-dashboard -->
+
+
+<!-- ════════════════════════════════════════════════════════ -->
+<!-- VIEW: PATIENTENSUCHE                                    -->
+<!-- ════════════════════════════════════════════════════════ -->
+<div class="view" id="view-suche">
+  <div class="page-header">
+    <div>
+      <div class="page-title">Patientensuche</div>
+      <div class="page-sub">148 Patienten in der Datenbank</div>
+    </div>
+    <button class="btn btn-primary" onclick="showView('admin')">
+      <svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+      Neuer Patient
+    </button>
+  </div>
+
+  <div class="search-bar-wrap">
+    <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35" stroke-linecap="round"/></svg>
+    <input type="text" placeholder="Name, Patient-ID oder Geburtsdatum …" id="patient-search-input" oninput="filterPatients(this.value)">
+  </div>
+
+  <div class="search-filters">
+    <span class="filter-chip active">
+      <svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+      Alle
+    </span>
+    <span class="filter-chip">
+      <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+      Kritische Befunde
+    </span>
+    <span class="filter-chip">
+      <svg viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+      Neue Laborwerte
+    </span>
+    <span class="filter-chip">
+      <svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+      Heute vorstellig
+    </span>
+  </div>
+
+  <div class="card" style="padding:0">
+    <div id="patient-list">
+      <!-- rendered by JS -->
+    </div>
+  </div>
+</div><!-- /view-suche -->
+
+
+<!-- ════════════════════════════════════════════════════════ -->
+<!-- VIEW: ADMIN – PATIENT ANLEGEN                           -->
+<!-- ════════════════════════════════════════════════════════ -->
+<div class="view" id="view-admin">
+  <div class="page-header">
+    <div>
+      <div class="page-title">Neuen Patienten anlegen</div>
+      <div class="page-sub">Stammdaten, Anamnese und initiale Dokumente</div>
+    </div>
+  </div>
+
+  <div class="tabs" style="margin-bottom:4px">
+    <button class="tab active" onclick="adminTab(this,'atab-stamm')">Stammdaten</button>
+    <button class="tab" onclick="adminTab(this,'atab-anamnese')">Anamnese</button>
+    <button class="tab" onclick="adminTab(this,'atab-dokumente')">Dokumente</button>
+  </div>
+
+  <!-- STAMMDATEN -->
+  <div id="atab-stamm">
+    <div class="card">
+      <div class="card-header"><div class="card-title">Persönliche Daten</div></div>
+      <div class="card-body">
+        <div class="form-grid">
+          <div class="form-group">
+            <label>Vorname *</label>
+            <input type="text" placeholder="z. B. Maria">
+          </div>
+          <div class="form-group">
+            <label>Nachname *</label>
+            <input type="text" placeholder="z. B. Kowalski">
+          </div>
+          <div class="form-group">
+            <label>Geburtsdatum *</label>
+            <input type="date" value="1968-03-14">
+          </div>
+          <div class="form-group">
+            <label>Geschlecht</label>
+            <select>
+              <option>Weiblich</option>
+              <option>Männlich</option>
+              <option>Divers</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Gewicht (kg)</label>
+            <input type="number" placeholder="68">
+          </div>
+          <div class="form-group">
+            <label>Größe (cm)</label>
+            <input type="number" placeholder="162">
+          </div>
+          <div class="form-group full">
+            <label>Adresse</label>
+            <input type="text" placeholder="Straße, Hausnummer, PLZ, Ort">
+          </div>
+          <div class="form-group">
+            <label>Telefon</label>
+            <input type="tel" placeholder="+49 …">
+          </div>
+          <div class="form-group">
+            <label>Krankenkasse</label>
+            <input type="text" placeholder="z. B. AOK Bayern">
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div style="display:flex;justify-content:flex-end;gap:10px;margin-top:4px">
+      <button class="btn btn-secondary">Abbrechen</button>
+      <button class="btn btn-primary" onclick="adminTab(document.querySelectorAll('.tab')[1],'atab-anamnese')">
+        Weiter zur Anamnese
+        <svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg>
+      </button>
+    </div>
+  </div>
+
+  <!-- ANAMNESE -->
+  <div id="atab-anamnese" style="display:none;flex-direction:column;gap:16px">
+    <div class="card">
+      <div class="card-header"><div class="card-title">Aktuelle Beschwerden & Anamnese</div></div>
+      <div class="card-body">
+        <div class="form-grid">
+          <div class="form-group full">
+            <label>Aktuelle Beschwerden / Hauptsymptome</label>
+            <textarea placeholder="Beschreiben Sie die aktuellen Beschwerden des Patienten …"></textarea>
+          </div>
+          <div class="form-group full">
+            <label>Vorerkrankungen (ICD-10)</label>
+            <textarea placeholder="z. B. E11.9 Diabetes mellitus Typ 2, I10 Arterielle Hypertonie …" style="min-height:70px"></textarea>
+          </div>
+          <div class="form-group">
+            <label>Dauermedikation</label>
+            <textarea placeholder="Wirkstoff · Dosis · Einnahme …" style="min-height:70px"></textarea>
+          </div>
+          <div class="form-group">
+            <label>Allergien & Unverträglichkeiten</label>
+            <textarea placeholder="z. B. Penicillin-Allergie, Lactose-Intoleranz …" style="min-height:70px"></textarea>
+          </div>
+          <div class="form-group">
+            <label>Familienanamnese</label>
+            <textarea placeholder="Relevante Erkrankungen in der Familie …" style="min-height:70px"></textarea>
+          </div>
+          <div class="form-group">
+            <label>Sozialanamnese / Risikofaktoren</label>
+            <textarea placeholder="Beruf, Rauchen, Alkohol, Sport …" style="min-height:70px"></textarea>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div style="display:flex;justify-content:flex-end;gap:10px">
+      <button class="btn btn-secondary" onclick="adminTab(document.querySelectorAll('.tab')[0],'atab-stamm')">Zurück</button>
+      <button class="btn btn-primary" onclick="adminTab(document.querySelectorAll('.tab')[2],'atab-dokumente')">
+        Weiter zu Dokumenten
+        <svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg>
+      </button>
+    </div>
+  </div>
+
+  <!-- DOKUMENTE -->
+  <div id="atab-dokumente" style="display:none;flex-direction:column;gap:16px">
+    <div class="card">
+      <div class="card-header"><div class="card-title">Befunde & Dokumente hochladen</div></div>
+      <div class="card-body" style="display:flex;flex-direction:column;gap:16px">
+        <div class="upload-zone">
+          <div class="upload-icon"><svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="18" x2="12" y2="12"/><line x1="9" y1="15" x2="15" y2="15"/></svg></div>
+          <div class="upload-title">Laborbefunde, Arztbriefe, Bildgebung</div>
+          <div class="upload-sub">PDF, CSV, JPEG, PNG, DICOM · Drag &amp; Drop oder klicken</div>
+        </div>
+
+        <!-- Uploaded files simulation -->
+        <div style="display:flex;flex-direction:column;gap:8px">
+          <div style="display:flex;align-items:center;gap:10px;padding:10px 14px;background:var(--surface2);border:1px solid var(--border);border-radius:8px">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--crit)" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+            <span style="flex:1;font-size:13px">Labor_Kowalski_2026-05-12.pdf</span>
+            <span class="badge badge-ok">OCR abgeschlossen</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:10px;padding:10px 14px;background:var(--surface2);border:1px solid var(--border);border-radius:8px">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--info)" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+            <span style="flex:1;font-size:13px">Arztbrief_Endokrinologie.pdf</span>
+            <span class="badge badge-info">Verarbeitung …</span>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div style="display:flex;justify-content:flex-end;gap:10px">
+      <button class="btn btn-secondary" onclick="adminTab(document.querySelectorAll('.tab')[1],'atab-anamnese')">Zurück</button>
+      <button class="btn btn-primary">
+        <svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+        Patient speichern & anlegen
+      </button>
+    </div>
+  </div>
+
+</div><!-- /view-admin -->
+
+
+<!-- ════════════════════════════════════════════════════════ -->
+<!-- VIEW: DATEN & BEFUNDE                                   -->
+<!-- ════════════════════════════════════════════════════════ -->
+<div class="view" id="view-daten">
+  <div class="page-header">
+    <div>
+      <div class="page-title">Daten & Befunde</div>
+      <div class="page-sub">Maria Kowalski · Pat-ID 00-4821</div>
+    </div>
+    <button class="btn btn-primary" onclick="showView('labor')">
+      <svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+      Laborwerte hinzufügen
+    </button>
+  </div>
+
+  <div class="three-col">
+    <!-- Stammdaten -->
+    <div class="card">
+      <div class="card-header"><div class="card-title">Stammdaten</div></div>
+      <div class="card-body">
+        <div class="data-row"><span class="data-key">Geburtsdatum</span><span class="data-val">14.03.1968</span></div>
+        <div class="data-row"><span class="data-key">Geschlecht</span><span class="data-val">Weiblich</span></div>
+        <div class="data-row"><span class="data-key">Gewicht</span><span class="data-val">58 kg</span></div>
+        <div class="data-row"><span class="data-key">Größe</span><span class="data-val">162 cm</span></div>
+        <div class="data-row"><span class="data-key">BMI</span><span class="data-val">22,1</span></div>
+        <div class="data-row"><span class="data-key">Krankenkasse</span><span class="data-val">TK</span></div>
+      </div>
+    </div>
+
+    <!-- Diagnosen -->
+    <div class="card">
+      <div class="card-header"><div class="card-title">Diagnosen (ICD-10)</div></div>
+      <div class="card-body">
+        <div class="data-row"><span class="data-key">E11.9</span><span class="data-val" style="font-size:12px;text-align:right">Diabetes Typ 2</span></div>
+        <div class="data-row"><span class="data-key">I10</span><span class="data-val" style="font-size:12px;text-align:right">Hypertonie</span></div>
+        <div class="data-row"><span class="data-key">E03.9</span><span class="data-val" style="font-size:12px;text-align:right">Hypothyreose</span></div>
+        <div class="data-row"><span class="data-key">E55.9</span><span class="data-val" style="font-size:12px;text-align:right">Vitamin-D-Mangel</span></div>
+        <div class="data-row"><span class="data-key">E61.1</span><span class="data-val" style="font-size:12px;text-align:right">Eisenmangel</span></div>
+      </div>
+    </div>
+
+    <!-- Dokumente -->
+    <div class="card">
+      <div class="card-header"><div class="card-title">Dokumente</div><span class="badge badge-info">3 Dateien</span></div>
+      <div class="card-body" style="display:flex;flex-direction:column;gap:8px">
+        <div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border)">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--crit)" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+          <div style="flex:1">
+            <div style="font-size:13px;font-weight:500">Labor Mai 2026</div>
+            <div style="font-size:11px;color:var(--text3)">12.05.2026 · PDF</div>
+          </div>
+        </div>
+        <div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border)">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+          <div style="flex:1">
+            <div style="font-size:13px;font-weight:500">Arztbrief Endokrinologie</div>
+            <div style="font-size:11px;color:var(--text3)">02.04.2026 · PDF</div>
+          </div>
+        </div>
+        <div style="display:flex;align-items:center;gap:10px;padding:8px 0">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--ok)" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+          <div style="flex:1">
+            <div style="font-size:13px;font-weight:500">Labor Februar 2026</div>
+            <div style="font-size:11px;color:var(--text3)">18.02.2026 · PDF</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Laborverlauf -->
+  <div class="card">
+    <div class="card-header">
+      <div class="card-title">Laborverlauf</div>
+      <span class="badge badge-neu">Letzte 12 Monate</span>
+    </div>
+    <table>
+      <thead>
+        <tr><th>Parameter</th><th>Feb 2026</th><th>Mär 2026</th><th>Apr 2026</th><th>Mai 2026</th><th>Trend</th><th>Status</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td style="font-weight:500">HbA1c (%)</td>
+          <td class="td-mono">8,1</td><td class="td-mono">8,5</td><td class="td-mono">8,9</td>
+          <td class="td-mono" style="color:var(--crit);font-weight:500">9,4</td>
+          <td style="color:var(--crit)">↑ +1,3</td>
+          <td><span class="badge badge-crit">Kritisch</span></td>
+        </tr>
+        <tr>
+          <td style="font-weight:500">TSH (mU/l)</td>
+          <td class="td-mono">5,2</td><td class="td-mono">5,8</td><td class="td-mono">6,1</td>
+          <td class="td-mono" style="color:var(--crit);font-weight:500">6,8</td>
+          <td style="color:var(--crit)">↑ +1,6</td>
+          <td><span class="badge badge-crit">Kritisch</span></td>
+        </tr>
+        <tr>
+          <td style="font-weight:500">Vitamin D (ng/ml)</td>
+          <td class="td-mono">22</td><td class="td-mono">20</td><td class="td-mono">19</td>
+          <td class="td-mono" style="color:var(--crit);font-weight:500">18</td>
+          <td style="color:var(--warn)">↓ -4</td>
+          <td><span class="badge badge-crit">Mangel</span></td>
+        </tr>
+        <tr>
+          <td style="font-weight:500">CRP (mg/l)</td>
+          <td class="td-mono">8,2</td><td class="td-mono">11,4</td><td class="td-mono">14,8</td>
+          <td class="td-mono" style="color:var(--crit);font-weight:500">18,4</td>
+          <td style="color:var(--crit)">↑ +10,2</td>
+          <td><span class="badge badge-crit">Kritisch</span></td>
+        </tr>
+        <tr>
+          <td style="font-weight:500">Zink (mg/l)</td>
+          <td class="td-mono">0,91</td><td class="td-mono">0,84</td><td class="td-mono">0,77</td>
+          <td class="td-mono" style="color:var(--warn);font-weight:500">0,72</td>
+          <td style="color:var(--warn)">↓ -0,19</td>
+          <td><span class="badge badge-warn">Grenzwertig</span></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div><!-- /view-daten -->
+
+
+<!-- ════════════════════════════════════════════════════════ -->
+<!-- VIEW: LABORWERTE EINGEBEN                               -->
+<!-- ════════════════════════════════════════════════════════ -->
+<div class="view" id="view-labor">
+  <div class="page-header">
+    <div>
+      <div class="page-title">Laborwerte eingeben</div>
+      <div class="page-sub">Maria Kowalski · manuelle Eingabe oder PDF-Upload</div>
+    </div>
+  </div>
+
+  <div class="two-col">
+    <div style="display:flex;flex-direction:column;gap:16px">
+      <div class="card">
+        <div class="card-header"><div class="card-title">Blutwerte & Stoffwechsel</div></div>
+        <div class="card-body">
+          <div class="form-grid-3">
+            <div class="form-group"><label>HbA1c (%)</label><input type="number" step="0.1" placeholder="z. B. 9,4"></div>
+            <div class="form-group"><label>Glukose (mg/dl)</label><input type="number" placeholder="z. B. 142"></div>
+            <div class="form-group"><label>Insulin (µU/ml)</label><input type="number" placeholder="z. B. 18"></div>
+            <div class="form-group"><label>Kreatinin (mg/dl)</label><input type="number" step="0.01" placeholder="1,28"></div>
+            <div class="form-group"><label>Harnstoff (mg/dl)</label><input type="number" placeholder="42"></div>
+            <div class="form-group"><label>GFR (ml/min)</label><input type="number" placeholder="72"></div>
+            <div class="form-group"><label>CRP (mg/l)</label><input type="number" step="0.1" placeholder="18,4"></div>
+            <div class="form-group"><label>Hb (g/dl)</label><input type="number" step="0.1" placeholder="11,4"></div>
+            <div class="form-group"><label>TSH (mU/l)</label><input type="number" step="0.1" placeholder="6,8"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header"><div class="card-title">Spurenelemente</div></div>
+        <div class="card-body">
+          <div class="form-grid-3">
+            <div class="form-group"><label>Zink (mg/l)</label><input type="number" step="0.01" placeholder="0,72"></div>
+            <div class="form-group"><label>Eisen (µmol/l)</label><input type="number" step="0.1" placeholder="14,2"></div>
+            <div class="form-group"><label>Magnesium (mmol/l)</label><input type="number" step="0.01" placeholder="0,61"></div>
+            <div class="form-group"><label>Selen (µg/l)</label><input type="number" placeholder="112"></div>
+            <div class="form-group"><label>Kupfer (µmol/l)</label><input type="number" step="0.1" placeholder="13,5"></div>
+            <div class="form-group"><label>Jod (µg/l)</label><input type="number" placeholder="88"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header"><div class="card-title">Vitamine</div></div>
+        <div class="card-body">
+          <div class="form-grid-3">
+            <div class="form-group"><label>Vitamin D (ng/ml)</label><input type="number" placeholder="18"></div>
+            <div class="form-group"><label>Vitamin B12 (pg/ml)</label><input type="number" placeholder="342"></div>
+            <div class="form-group"><label>Folsäure (ng/ml)</label><input type="number" step="0.1" placeholder="4,2"></div>
+            <div class="form-group"><label>Vitamin C (µmol/l)</label><input type="number" placeholder="88"></div>
+            <div class="form-group"><label>Vitamin K2 (ng/ml)</label><input type="number" step="0.1" placeholder="1,1"></div>
+            <div class="form-group"><label>Vitamin B6 (mg/l)</label><input type="number" step="0.1" placeholder="0,9"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div style="display:flex;flex-direction:column;gap:16px">
+      <div class="card">
+        <div class="card-header"><div class="card-title">Befund hochladen (OCR)</div></div>
+        <div class="card-body">
+          <div class="upload-zone">
+            <div class="upload-icon"><svg viewBox="0 0 24 24"><polyline points="16 16 12 12 8 16"/><line x1="12" y1="12" x2="12" y2="21"/><path d="M20.39 18.39A5 5 0 0 0 18 9h-1.26A8 8 0 1 0 3 16.3"/></svg></div>
+            <div class="upload-title">Laborbefund hochladen</div>
+            <div class="upload-sub">Werte werden automatisch per OCR extrahiert</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header"><div class="card-title">Metadaten</div></div>
+        <div class="card-body">
+          <div class="form-grid" style="grid-template-columns:1fr">
+            <div class="form-group"><label>Untersuchungsdatum *</label><input type="date" value="2026-05-17"></div>
+            <div class="form-group"><label>Einsendendes Labor</label><input type="text" placeholder="z. B. Labor München GmbH"></div>
+            <div class="form-group"><label>Anfordernder Arzt</label><input type="text" placeholder="z. B. Dr. Hoffmann"></div>
+            <div class="form-group"><label>Anmerkungen</label><textarea placeholder="Besonderheiten, Nüchternwert, Medikamenteneinnahme …" style="min-height:70px"></textarea></div>
+          </div>
+        </div>
+      </div>
+
+      <div style="display:flex;gap:10px">
+        <button class="btn btn-secondary" style="flex:1">Zurücksetzen</button>
+        <button class="btn btn-primary" style="flex:2">
+          <svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+          Laborwerte speichern
+        </button>
+      </div>
+    </div>
+  </div>
+</div><!-- /view-labor -->
+
+
+<!-- ════════════════════════════════════════════════════════ -->
+<!-- VIEW: KI-DIAGNOSE                                       -->
+<!-- ════════════════════════════════════════════════════════ -->
+<div class="view" id="view-diagnose">
+  <div class="page-header">
+    <div>
+      <div class="page-title">KI-Diagnoseunterstützung</div>
+      <div class="page-sub">Multi-LLM · RAG · Konsensus-Engine</div>
+    </div>
+    <div style="display:flex;gap:8px;align-items:center">
+      <span class="badge badge-ok" style="font-size:12px;padding:5px 12px">
+        <span class="ki-dot" style="display:inline-block;margin-right:4px"></span>
+        3 Modelle aktiv
+      </span>
+    </div>
+  </div>
+
+  <div class="ki-panel">
+    <div class="ki-header">
+      <div class="ki-dot"></div>
+      <div class="ki-title">Anfrage an KI-System senden</div>
+    </div>
+    <div class="ki-input-row">
+      <input class="ki-input" id="ki-query" placeholder="z. B. Welche Ursachen könnten den steigenden TSH-Wert erklären?" value="Welche Ursachen könnten den steigenden TSH-Wert bei gleichzeitig niedrigem Vitamin D und erhöhtem CRP erklären?">
+      <button class="btn btn-primary" onclick="runKI()">Analyse starten</button>
+    </div>
+
+    <div class="ki-result" id="ki-result">
+      <div class="ki-result-title">Modellantworten & Konsensus</div>
+      <div class="ki-model-row">
+        <div class="ki-model-name">LLM-A</div>
+        <div class="ki-model-bar"><div class="ki-model-fill" style="width:94%"></div></div>
+        <div class="ki-model-score">0.94</div>
+      </div>
+      <div class="ki-model-row">
+        <div class="ki-model-name">LLM-B</div>
+        <div class="ki-model-bar"><div class="ki-model-fill" style="width:89%"></div></div>
+        <div class="ki-model-score">0.89</div>
+      </div>
+      <div class="ki-model-row">
+        <div class="ki-model-name">LLM-C</div>
+        <div class="ki-model-bar"><div class="ki-model-fill" style="width:87%"></div></div>
+        <div class="ki-model-score">0.87</div>
+      </div>
+      <div class="ki-model-row">
+        <div class="ki-model-name">LLM-D</div>
+        <div class="ki-model-bar"><div class="ki-model-fill" style="width:32%"></div></div>
+        <div class="ki-model-score" style="color:var(--text3)">0.32</div>
+      </div>
+      <div class="consensus-badge">
+        <svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+        <div class="consensus-text">Konsensus: Hashimoto-Thyreoiditis + Vitamin-D-bedingter Immundefekt (3/4 Modelle, Score 0.90)</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="two-col">
+    <div class="card">
+      <div class="card-header"><div class="card-title">Konsensus-Diagnose</div><span class="badge badge-ok">Score 0.90</span></div>
+      <div class="card-body" style="display:flex;flex-direction:column;gap:12px">
+        <div style="padding:14px;background:var(--surface2);border-radius:var(--radius);border-left:3px solid var(--accent)">
+          <div style="font-size:13px;font-weight:500;margin-bottom:6px">Primärdiagnose (Konsensus)</div>
+          <div style="font-size:14px;color:var(--text)">Autoimmune Thyreoiditis (Hashimoto) mit entzündlicher Aktivierung — verstärkt durch Vitamin-D-Mangel-induzierten Immundefekt und beginnende diabetische Nephropathie.</div>
+        </div>
+        <div>
+          <div style="font-size:12px;font-weight:500;color:var(--text3);margin-bottom:8px;text-transform:uppercase;letter-spacing:.06em">Therapieempfehlungen (KI)</div>
+          <div style="display:flex;flex-direction:column;gap:6px;font-size:13px">
+            <div style="display:flex;gap:8px"><span style="color:var(--accent);font-weight:500">1.</span> L-Thyroxin Dosisanpassung (Ziel TSH 0,5–2,5 mU/l)</div>
+            <div style="display:flex;gap:8px"><span style="color:var(--accent);font-weight:500">2.</span> Vitamin D3 Hochdosissubstitution 4000 IE/Tag für 8 Wochen</div>
+            <div style="display:flex;gap:8px"><span style="color:var(--accent);font-weight:500">3.</span> HbA1c-Kontrolle in 6 Wochen, ggf. GLP-1-RA erwägen</div>
+            <div style="display:flex;gap:8px"><span style="color:var(--accent);font-weight:500">4.</span> Anti-TPO und Anti-TG Antikörper bestimmen</div>
+          </div>
+        </div>
+        <div style="padding:10px;background:var(--warn-lt);border-radius:8px;font-size:12px;color:var(--warn)">
+          ⚠ Hinweis: KI-Ausgabe dient nur der Entscheidungsunterstützung und ersetzt nicht die ärztliche Diagnose.
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header"><div class="card-title">Agentische Peer-Review</div><span class="badge badge-info">Geplant</span></div>
+      <div class="card-body" style="display:flex;flex-direction:column;gap:14px">
+        <div style="font-size:13px;color:var(--text2)">Die Modelle überprüfen sich gegenseitig über einen definierten Zeitraum und verfeinern die Diagnose iterativ.</div>
+        <div class="form-group">
+          <label>Iterationszeitraum</label>
+          <select disabled>
+            <option>2 Runden (schnell)</option>
+            <option>5 Runden (standard)</option>
+            <option>10 Runden (tiefgründig)</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Prüfungsfokus</label>
+          <select disabled>
+            <option>Diagnose & Differenzialdiagnose</option>
+            <option>Therapieempfehlung</option>
+            <option>Laborinterpretation</option>
+          </select>
+        </div>
+        <button class="btn btn-secondary" disabled style="opacity:.5;cursor:not-allowed">
+          Peer-Review starten (in Entwicklung)
+        </button>
+      </div>
+    </div>
+  </div>
+</div><!-- /view-diagnose -->
+
+</main>
+</div><!-- /app-body -->
+
+<script>
+// ── NAVIGATION ────────────────────────────────────
+function showView(id) {
+  document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  const view = document.getElementById('view-' + id);
+  if (view) view.classList.add('active');
+  const navMap = {dashboard:0, suche:1, admin:2, daten:3, labor:4, diagnose:5};
+  const items = document.querySelectorAll('.nav-item');
+  if (navMap[id] !== undefined && items[navMap[id]]) items[navMap[id]].classList.add('active');
+}
+
+// ── ADMIN TABS ─────────────────────────────────────
+function adminTab(btn, tabId) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  btn.classList.add('active');
+  ['atab-stamm','atab-anamnese','atab-dokumente'].forEach(t => {
+    const el = document.getElementById(t);
+    if (el) el.style.display = t === tabId ? 'flex' : 'none';
+    if (el && t === tabId) el.style.flexDirection = 'column';
+  });
+}
+
+// ── PATIENT LIST ──────────────────────────────────
+const patients = [
+  {init:'MK', name:'Maria Kowalski', id:'00-4821', geb:'14.03.1968', diag:'Diabetes T2 · Hypothyreose', date:'Heute', status:'crit', col:'#fee2e2', tc:'#dc2626'},
+  {init:'HB', name:'Hans Berger', id:'00-3312', geb:'22.07.1955', diag:'Hypertonie · KHK', date:'Gestern', status:'warn', col:'#fef3c7', tc:'#d97706'},
+  {init:'AV', name:'Anna Vogel', id:'00-5510', geb:'09.11.1982', diag:'Eisenmangelanämie', date:'15.05.2026', status:'warn', col:'#fef3c7', tc:'#d97706'},
+  {init:'TM', name:'Thomas Meier', id:'00-2208', geb:'31.01.1971', diag:'Hypertonie', date:'12.05.2026', status:'ok', col:'#d1fae5', tc:'#059669'},
+  {init:'SK', name:'Susanne Klein', id:'00-6677', geb:'18.06.1990', diag:'Vitamin-D-Mangel', date:'10.05.2026', status:'ok', col:'#d1fae5', tc:'#059669'},
+  {init:'PG', name:'Peter Gruber', id:'00-1145', geb:'03.09.1948', diag:'COPD · Osteoporose', date:'08.05.2026', status:'crit', col:'#fee2e2', tc:'#dc2626'},
+];
+
+function renderPatients(list) {
+  const container = document.getElementById('patient-list');
+  container.innerHTML = list.map(p => `
+    <div class="patient-list-item" onclick="showView('dashboard')">
+      <div class="pli-avatar" style="background:${p.col};color:${p.tc}">${p.init}</div>
+      <div>
+        <div class="pli-name">${p.name}</div>
+        <div class="pli-meta">Geb. ${p.geb} · ID ${p.id} · ${p.diag}</div>
+      </div>
+      <div class="pli-right">
+        <div class="pli-date">${p.date}</div>
+        <span class="badge badge-${p.status}">${p.status === 'crit' ? 'Kritisch' : p.status === 'warn' ? 'Auffällig' : 'Unauffällig'}</span>
+      </div>
+    </div>`).join('');
+}
+
+function filterPatients(q) {
+  const filtered = patients.filter(p =>
+    p.name.toLowerCase().includes(q.toLowerCase()) ||
+    p.id.includes(q) || p.geb.includes(q) || p.diag.toLowerCase().includes(q.toLowerCase())
+  );
+  renderPatients(filtered);
+}
+
+function globalSearch(q) {
+  if (q.length > 1) { showView('suche'); filterPatients(q); document.getElementById('patient-search-input').value = q; }
+}
+
+renderPatients(patients);
+
+// ── KI SIMULATION ──────────────────────────────────
+function runKI() {
+  const btn = document.querySelector('.ki-panel .btn-primary');
+  btn.textContent = 'Analysiere …';
+  btn.disabled = true;
+  setTimeout(() => { btn.textContent = 'Analyse starten'; btn.disabled = false; }, 2200);
+}
+</script>
+</body>
+</html>
