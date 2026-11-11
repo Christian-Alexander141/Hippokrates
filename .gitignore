@@ -14,3 +14,5 @@ __pycache__/
 # OS-Dateien
 .DS_Store
 Thumbs.db
+# Laufzeitdaten (Patientendaten, Bibliothek, Index)
+daten/

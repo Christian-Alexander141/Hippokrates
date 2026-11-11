@@ -1,158 +1,212 @@
 # Hippokrates
-Standalone-KI-System für medizinische Diagnoseunterstützung mit Multi-LLM-Konsensus und patientenindividueller RAG-Architektur.
 
+**Lokales Werkzeug zur Diagnoseunterstützung: Mehrere KI-Agenten mit unterschiedlichen Sprachmodellen recherchieren unabhängig voneinander in medizinischer Fachliteratur – ein deterministischer Abgleich ordnet ihre Diagnosen danach, wie viele Agenten übereinstimmen.**
 
-## Überblick
+![Diagnoseansicht mit führender Diagnose, Differentialdiagnosen, Übereinstimmungsmatrix, Rückfragen und zitierter Literatur](docs/bilder/diagnose.png)
 
-MediConsult AI ist ein vollständig eigenständiges, serverbasiertes System, das medizinisches Fachpersonal bei der Diagnosestellung unterstützt. Es verbindet patientenindividuelle Retrieval-Augmented Generation (RAG) mit einem parallelen Multi-LLM-Ansatz: Mehrere Sprachmodelle analysieren dieselben Patientendaten unabhängig voneinander. Ein Konsensus-Algorithmus bewertet und gewichtet die Antworten – häufig übereinstimmende Diagnosen werden höher eingestuft, Ausreißer werden gefiltert oder verworfen.
-
-Das System ist nicht mit externen Diensten oder Krankenhausinformationssystemen verbunden. Alle Patientendaten werden direkt im System erfasst und verbleiben dort.
-
-
-## Kernfunktionen
-
-### Patientenverwaltung (Admin-Bereich)
-- Anlegen und Verwalten von Patientenprofilen
-- Strukturierte Erfassung von Anamnese und Vorerkrankungen
-- Manuelle Eingabe und Hochladen von Laborbefunden (PDF, CSV)
-- Erfassung von Blutwerten, Vitaminen und Spurenelementen mit Referenzwerten
-- Upload von Befundberichten und Bilddokumenten
-
-### KI-Diagnoseunterstützung
-- Pro Patient eine isolierte RAG-Instanz auf Basis der patientenspezifischen Daten
-- Parallele Verarbeitung durch mehrere Sprachmodelle (LLM A … LLM N)
-- Konsensus-Engine: semantischer Abgleich und Ranking der Modellantworten
-- Automatisches Verwerfen von Ausreißern unterhalb eines Ähnlichkeitsschwellwerts
-- Strukturierte Ausgabe mit Diagnosevorschlag und Konfidenz-Score
-
-### Dashboard
-- Patientensuche nach Name, ID oder Geburtsdatum
-- Visualisierung von Spurenelementen (Zn, Fe, Mg, Cu, Se u. a.) mit Referenzbereich
-- Ampelsystem für Vitaminversorgung (B12, D, K2, Folsäure u. a.)
-- Hervorhebung kritischer Blutwerte (Hb, Kreatinin, CRP u. a.)
-- Zeitlicher Verlauf aller Messwerte
-
-### Agentische Funktion *(in Entwicklung)*
-- LLM-Peer-Review: Modelle prüfen und kommentieren die Antworten der anderen
-- Nutzer-definierter Iterationszeitraum
-- Audit-Log aller Überprüfungsschritte
+> **Hinweis:** Hippokrates dient ausschließlich der Entscheidungsunterstützung für medizinisches Fachpersonal. Es ersetzt weder die ärztliche Diagnose noch die Behandlungsentscheidung. Dass mehrere Modelle übereinstimmen, ist kein Beleg dafür, dass sie richtig liegen.
 
 ---
 
-## Systemarchitektur
+## Die Idee
+
+Ein einzelnes Sprachmodell liefert eine plausibel klingende Antwort, aber ob sie belastbar ist, lässt sich schwer einschätzen. Hippokrates fragt deshalb mehrere Modelle **unabhängig voneinander** und macht sichtbar, wo sie übereinstimmen:
+
+1. In der **Patientenakte** werden Beschwerden, Befunde und Vorgeschichte erfasst und dauerhaft lokal gespeichert.
+2. Jede gespeicherte Änderung startet sofort einen **Abgleich**. Dafür arbeitet eine festgelegte Zahl von Agenten, jeder mit einem eigenen Sprachmodell.
+3. Jeder Agent **recherchiert selbst**: Er formuliert Suchanfragen, durchsucht die lokale Fachbibliothek (RAG) und – falls erlaubt – PubMed. Danach nennt er seine Differentialdiagnosen mit ICD-10-Code, Begründung und Belegstellen. Die Agenten sehen einander nicht.
+4. Ein **deterministischer Abgleich** ohne Sprachmodell führt gleiche Diagnosen zusammen und sortiert sie: Was mehr Agenten nennen, steht weiter oben. Gleiche Eingaben ergeben immer dieselbe Rangfolge.
+5. Fehlen wichtige Angaben, stellen die Agenten **Rückfragen**. Die Antworten fließen in die Akte und lösen den nächsten Abgleich aus.
+
+Alles läuft lokal über [Ollama](https://ollama.com). Patientennamen werden nie an ein Sprachmodell übergeben.
+
+---
+
+## Die Oberfläche
+
+### Diagnosen
+
+Die Übersicht zeigt alle Patienten mit Abgleichstatus und den drei führenden Diagnosen samt Zustimmung.
+
+![Übersicht aller Patienten mit Kennzahlen und führenden Diagnosen](docs/bilder/uebersicht.png)
+
+Pro Patient (Bild oben):
+
+- **Führende Diagnose** mit Zustimmungsring („3/3 Agenten“) und den Begründungen jedes Agenten
+- **Differentialdiagnosen** mit Zustimmungsbalken; Diagnosen, die nur ein Agent nennt, sind eingeklappt
+- **Übereinstimmungsmatrix**: welcher Agent welche Diagnose auf welchem Platz genannt hat
+- **Zitierte Literatur**: Fachbuchstellen mit Seite und PubMed-Abstracts mit Link; ein Klick auf [1] springt zur Quelle
+- **Rückfragen** der Agenten mit Antwortfeldern
+- **Rahmen** des Abgleichs: beteiligte Modelle, berücksichtigte Fachbücher, Internetrecherche, Zeitpunkt und Dauer
+
+Während ein Abgleich läuft, zeigt jede Agentenkachel ihren aktuellen Schritt. Das letzte abgeschlossene Ergebnis bleibt bis dahin sichtbar.
+
+![Fortschrittsanzeige eines laufenden Abgleichs mit drei Agenten](docs/bilder/abgleich-laeuft.png)
+
+### Patientenakte
+
+Die Akte ist gegliedert in Stammdaten, aktuelle Beschwerden, Befunde und Laborwerte, Vorgeschichte, Familie und Lebensumstände sowie Ergänzungen (dort landen auch die Antworten auf Rückfragen). Ungespeicherte Änderungen werden angezeigt; Strg+S speichert.
+
+![Patientenakte mit Stammdaten, Beschwerden und Befunden](docs/bilder/patientenakte.png)
+
+### Adminbereich
+
+Hier liegen dauerhafte **fachliche** Vorgaben, die für alle künftigen Abgleiche gelten:
+
+- welche Fachbücher der Bibliothek berücksichtigt werden (Upload per Drag & Drop, Schalter je Buch)
+- Internetrecherche in PubMed ja/nein
+- Rückfragen ja/nein
+- automatischer Abgleich bei Änderungen ja/nein
+- Anzahl der Diagnosen je Agent
+- Einzelnennungen einklappen
+
+![Adminbereich mit Fachbibliothek und Recherche-Einstellungen](docs/bilder/adminbereich.png)
+
+### Technik
+
+Technische Einstellungen: Anzahl der Agenten und ihre Sprachmodelle, Ollama-Adresse, Embedding-Modell für die Bibliothek, Literaturstellen je Suchanfrage, Zusammenfassung nach ICD-10-Kategorie und Denkphase für Thinking-Modelle. Cloud-Modelle werden gekennzeichnet; vor ihrer Verwendung mit Patientendaten wird gewarnt.
+
+![Technik-Einstellungen mit Agenten, Ollama-Verbindung und Suchparametern](docs/bilder/technik.png)
+
+Die Oberfläche passt sich dem hellen oder dunklen Farbschema des Systems an.
+
+![Diagnoseansicht im Dunkelmodus](docs/bilder/diagnose-dunkel.png)
+
+---
+
+## So funktioniert der Abgleich
 
 ```
-┌─────────────────────────────────────────────────────┐
-│                   Admin-Bereich                     │
-│  Patient anlegen · Anamnese · Labor · Dokumente     │
-└────────────────────────┬────────────────────────────┘
-                         │ speichern
-┌────────────────────────▼────────────────────────────┐
-│              Datenspeicher & KI-Kern                │
-│                                                     │
-│  ┌──────────────┐  ┌──────────────┐  ┌───────────┐ │
-│  │ Relationale  │  │ Vektorspeicher│  │  Datei-   │ │
-│  │     DB       │  │ (RAG/Patient) │  │ speicher  │ │
-│  └──────────────┘  └──────────────┘  └───────────┘ │
-│                                                     │
-│         LLM-Orchestrator · Konsensus-Engine         │
-└────────────────────────┬────────────────────────────┘
-                         │ lesen
-┌────────────────────────▼────────────────────────────┐
-│                Dashboard (Read-Only)                │
-│  Suche · Spurenelemente · Vitamine · Blutwerte      │
-│  KI-Diagnoseanfrage · Verlauf & Historie            │
-└─────────────────────────────────────────────────────┘
+Patientenakte ──(Änderung gespeichert)──▶ Abgleich startet
+                                              │
+             ┌────────────────────────────────┼────────────────────────────────┐
+             ▼                                ▼                                ▼
+     Agent 1 (Modell A)               Agent 2 (Modell B)               Agent N (Modell N)
+     plant Recherche                  plant Recherche                  plant Recherche
+     durchsucht Fachbücher            durchsucht Fachbücher            durchsucht Fachbücher
+     sucht in PubMed (optional)       sucht in PubMed (optional)       sucht in PubMed (optional)
+     nennt Diagnosen + Rückfragen     nennt Diagnosen + Rückfragen     nennt Diagnosen + Rückfragen
+             └────────────────────────────────┼────────────────────────────────┘
+                                              ▼
+                          deterministischer Konsens (konsens.py)
+                                              ▼
+                             Rangliste in der Diagnoseansicht
 ```
 
----
+**Wann gelten zwei Nennungen als dieselbe Diagnose?**
 
-## Tech-Stack (Referenzimplementierung)
+- Wenn ihre Namen nach dem Normalisieren übereinstimmen. Dabei werden Groß- und Kleinschreibung, Umlaute, c/k/z-Schreibweisen (Appendicitis = Appendizitis), Klammerzusätze, „V. a.“, Füllwörter, Wortreihenfolge und römische Typziffern angeglichen.
+- Oder wenn ihre ICD-10-Codes in derselben dreistelligen Kategorie liegen (zum Beispiel D50.0 und D50.9). Das ist abschaltbar, weil kleine Modelle Codes manchmal falsch raten.
 
-| Schicht | Technologie |
-|---|---|
-| Backend | Python · FastAPI |
-| Datenbank | PostgreSQL + pgvector |
-| RAG-Framework | LangChain / LlamaIndex |
-| LLM (lokal) | Ollama · Llama 3 · Mistron · Meditron |
-| LLM (API) | OpenAI · Anthropic Claude |
-| Frontend | React · TypeScript · Tailwind CSS |
-| Dokumentenverarbeitung | PDFPlumber · Tesseract OCR |
-| Deployment | Docker · Docker Compose |
+**Rangfolge:** zuerst die Zahl der zustimmenden Agenten, bei Gleichstand der mittlere Listenplatz, danach alphabetisch. Jeder Agent zählt je Diagnose nur einmal.
+
+**Robustheit:** Fällt ein Agent aus (Zeitlimit, ungültige Antwort), läuft der Abgleich mit den übrigen weiter, und der Ausfall wird angezeigt. Wird die Akte während eines laufenden Abgleichs erneut geändert, ersetzt ein neuer Abgleich den alten. Jedes Modell darf nur einem Agenten zugewiesen werden, damit es sich nicht selbst zustimmt.
 
 ---
 
-## Datenschutz & Sicherheit
+## Datenschutz
 
-- **Vollständig standalone** – keine Verbindung zu externen APIs oder Diensten erforderlich
-- Alle Patientendaten verbleiben auf dem lokalen Server
-- Rollenbasierte Zugriffskontrolle (Admin / Arzt / Lesezugriff)
-- Verschlüsselte Datenbankverbindungen
-- Audit-Log für alle Datenzugriffe und KI-Anfragen
-- Konform mit den Anforderungen der DSGVO und §203 StGB (ärztliche Schweigepflicht)
+- Patientendaten, Fachbibliothek und Suchindex liegen in einer lokalen SQLite-Datenbank im Ordner `daten/`. Er ist per `.gitignore` vom Repository ausgeschlossen.
+- Der Patientenname wird nie an ein Sprachmodell übergeben; die Agenten sehen nur Alter, Geschlecht und die klinischen Angaben.
+- Der Server ist nur vom eigenen Rechner erreichbar (`127.0.0.1`). Eine Benutzeranmeldung gibt es noch nicht.
+- **Ausnahmen, die Daten nach außen geben:**
+  - die PubMed-Recherche (im Adminbereich standardmäßig aus): Dabei gehen die von den Agenten formulierten englischen Suchbegriffe an [Europe PMC] – keine Namen, aber Symptomkombinationen;
+  - als Agent gewählte Ollama-Cloud-Modelle: Sie erhalten die vollständigen klinischen Angaben. Die Oberfläche kennzeichnet sie und warnt davor.
 
-> **Hinweis:** Dieses System dient ausschließlich der Entscheidungsunterstützung. Es ersetzt nicht die ärztliche Diagnose und Behandlungsentscheidung.
+[Europe PMC]: https://europepmc.org
 
 ---
 
 ## Installation
 
+Voraussetzungen:
+
+- Python 3.12 oder neuer
+- ein laufendes [Ollama](https://ollama.com) mit mindestens zwei verschiedenen Chat-Modellen und einem Embedding-Modell, zum Beispiel:
+
 ```bash
-# Repository klonen
-git clone https://github.com/dein-name/Hippokrates.git
+ollama pull mistral:7b
+ollama pull qwen3.5:9b
+ollama pull granite-embedding:278m
+```
+
+Installieren und starten:
+
+```bash
+git clone https://github.com/Christian-Alexander141/Hippokrates.git
 cd Hippokrates
-
-# Umgebungsvariablen konfigurieren
-cp .env.example .env
-
-# System starten
-docker compose up -d
+python3 -m venv .venv
+.venv/bin/pip install -r requirements.txt
+.venv/bin/python src/main.py
 ```
 
-Die Anwendung ist anschließend erreichbar unter `http://localhost:3000`.
+Die Anwendung läuft dann unter <http://127.0.0.1:8000>. Beim ersten Start werden die drei größten lokalen Chat-Modelle als Agenten und das erste Embedding-Modell vorbelegt.
 
-Eine detaillierte Installationsanleitung findet sich in [`docs/setup.md`](docs/setup.md).
+**Erste Schritte**
+
+1. Unter **Technik** die Agenten und ihre Modelle prüfen.
+2. Im **Adminbereich** Fachbücher hochladen (PDF mit Textebene, TXT oder MD). Sie werden lokal indexiert.
+3. In der **Patientenakte** einen Patienten anlegen und speichern. Der erste Abgleich startet automatisch.
+
+Den Speicherort der Daten legt die Umgebungsvariable `HIPPOKRATES_DATEN` fest (Standard: `daten/` im Projektordner).
+
+**Hardware:** Mit `Gleichzeitig laufende Agenten = 1` arbeiten die Agenten nacheinander, sodass jeweils nur ein Modell im Grafikspeicher liegt. Auf einer Grafikkarte mit 11 GB dauert ein Abgleich mit drei kleineren Modellen (2 bis 7 Milliarden Parameter) einige Minuten.
+
+**Tests:** `.venv/bin/python -m unittest discover tests`
 
 ---
 
-## Projektstruktur
+## Technik und Projektstruktur
+
+| Schicht | Technologie |
+|---|---|
+| Backend | Python · FastAPI |
+| Speicherung | SQLite (Patienten, Einstellungen, Abgleiche, Literaturindex) |
+| Sprachmodelle und Embeddings | Ollama |
+| RAG | eigene Indexierung (pypdf) und Kosinussuche (NumPy) |
+| Internetrecherche | Europe-PMC-REST-Schnittstelle (PubMed-Abstracts) |
+| Oberfläche | eine HTML-Seite ohne Build-Schritt und ohne externe Abhängigkeiten |
 
 ```
-mediconsult-ai/
-├── backend/
-│   ├── api/            # FastAPI-Routen
-│   ├── rag/            # RAG-Logik pro Patient
-│   ├── llm/            # LLM-Orchestrator & Konsensus
-│   └── models/         # Datenbankmodelle
-├── frontend/
-│   ├── admin/          # Dateneingabe & Patientenverwaltung
-│   └── dashboard/      # Visualisierung & Diagnoseansicht
-├── docs/               # Dokumentation
-└── docker-compose.yml
+Hippokrates/
+├── src/
+│   ├── main.py                  # FastAPI-Server und API-Routen
+│   ├── Index/index.html         # Oberfläche (Diagnosen, Patientenakte, Adminbereich, Technik)
+│   └── model/Datenkern/
+│       ├── db.py                # SQLite-Speicherung und Einstellungen
+│       ├── ollama.py            # Ollama-Client (JSON-Schema, Zeitlimit, Abbruch)
+│       ├── rag.py               # Fachbibliothek: Indexierung und Suche
+│       ├── web.py               # optionale PubMed-Recherche
+│       ├── agent.py             # ein recherchierender Diagnose-Agent
+│       ├── abgleich.py          # startet die Agenten, reagiert auf Datenänderungen
+│       └── konsens.py           # deterministischer Vergleich und Rangfolge
+├── tests/                       # Tests für den Konsens
+├── docs/bilder/                 # Screenshots (Demo-Daten)
+└── daten/                       # Laufzeitdaten (nicht im Repository)
 ```
 
 ---
 
-## Status
+## Stand und Ausblick
 
 | Komponente | Status |
 |---|---|
-| Admin-Bereich / Dateneingabe | 🔧 In Entwicklung |
-| Patientendatenbank | 🔧 In Entwicklung |
-| RAG-Engine (pro Patient) | 🔧 In Entwicklung |
-| Multi-LLM-Orchestrator | 🔧 In Entwicklung |
-| Konsensus-Algorithmus | 🔧 In Entwicklung |
-| Dashboard | 🔧 In Entwicklung |
-| Agentische Peer-Review | 📋 Geplant |
+| Patientenakte mit dauerhafter lokaler Speicherung | ✅ umgesetzt |
+| Automatischer Abgleich bei jeder Änderung | ✅ umgesetzt |
+| Multi-Agenten-Recherche mit verschiedenen Modellen | ✅ umgesetzt |
+| Lokale Fachbibliothek (RAG) mit Auswahl der Bücher | ✅ umgesetzt |
+| Optionale PubMed-Recherche | ✅ umgesetzt |
+| Rückfragen der Agenten mit Antworten in der Akte | ✅ umgesetzt |
+| Deterministischer Konsens und Diagnoseansicht | ✅ umgesetzt |
+| Dokumente und strukturierte Laborwerte je Patient | 📋 geplant |
+| Verlaufsgrafiken für Laborwerte (Entwurf: `src/Index/mediconsult.html`) | 📋 geplant |
+| Benutzerrollen und Audit-Log | 📋 geplant |
+| Gegenseitige Prüfung der Agenten (Peer-Review) | 📋 geplant |
+
+Die Bilder in dieser README zeigen erfundene Demo-Patienten; die Abgleiche darin wurden für die Aufnahmen direkt in die Datenbank geschrieben.
 
 ---
 
 ## Lizenz
 
-Dieses Projekt steht unter der [MIT License](LICENSE).
-
----
-
-## Mitwirken
-
-Issues und Pull Requests sind willkommen. Bitte lies zunächst [`CONTRIBUTING.md`](CONTRIBUTING.md).
+Dieses Projekt steht unter der [GNU General Public License v3.0](LICENSE).

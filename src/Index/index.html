@@ -1,0 +1,1234 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Hippokrates</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#f2f4f7;--fl:#fff;--fl2:#f8fafc;--fl3:#eef2f6;--li:#e4e9f0;--li2:#d3dbe5;
+  --tx:#0f172a;--tx2:#475569;--tx3:#8592a6;
+  --ak:#0e7490;--ak-h:#e5f3f7;--ak-t:#0b5468;
+  --ok:#047857;--ok-h:#e3f5ec;--wa:#b45309;--wa-h:#fdf3e1;--kr:#c81e1e;--kr-h:#fdeceb;
+  --nav:#0a1622;--nav2:#12212f;--nav-tx:#93a4b6;
+  --sch:0 1px 2px rgba(15,23,42,.05),0 1px 6px rgba(15,23,42,.04);
+  --sch2:0 14px 34px rgba(15,23,42,.10);
+  --r:14px;
+  --font:"Inter","Segoe UI Variable Text","Segoe UI",system-ui,-apple-system,Roboto,"Helvetica Neue",sans-serif;
+  --mono:ui-monospace,"JetBrains Mono","DejaVu Sans Mono",Menlo,monospace;
+  color-scheme:light;
+}
+@media (prefers-color-scheme:dark){:root{
+  --bg:#0b1219;--fl:#111b25;--fl2:#0f1821;--fl3:#18242f;--li:#1f2d3a;--li2:#2b3c4c;
+  --tx:#e6edf3;--tx2:#a9b6c3;--tx3:#6f8193;
+  --ak:#2bb0d0;--ak-h:#0f2a35;--ak-t:#8fdcef;
+  --ok:#34d399;--ok-h:#0f2a22;--wa:#fbbf24;--wa-h:#2b2313;--kr:#f87171;--kr-h:#2d1517;
+  --nav:#070e15;--nav2:#0f1b26;
+  --sch:none;--sch2:0 14px 34px rgba(0,0,0,.45);color-scheme:dark;
+}}
+html,body{height:100%}
+body{font-family:var(--font);background:var(--bg);color:var(--tx);font-size:14px;line-height:1.5;-webkit-font-smoothing:antialiased}
+button,input,select,textarea{font:inherit;color:inherit}
+a{color:var(--ak)}
+[hidden]{display:none!important}
+.ic{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;flex:none}
+.ic.mini{width:13px;height:13px}
+.mono{font-family:var(--mono);font-size:12px}
+.klein{font-size:12.5px;color:var(--tx2)}
+
+/* ── Rahmen ── */
+.app{display:grid;grid-template-columns:232px 300px minmax(0,1fr);height:100vh}
+.app.ohne-liste{grid-template-columns:232px minmax(0,1fr)}
+.app.ohne-liste .pspalte{display:none}
+
+.nav{background:var(--nav);color:var(--nav-tx);display:flex;flex-direction:column;gap:3px;padding:20px 12px 14px;overflow:auto}
+.marke{display:flex;align-items:center;gap:11px;padding:2px 8px 24px}
+.logo{width:36px;height:36px;border-radius:10px;background:linear-gradient(135deg,#2bb0d0,#0e7490);display:grid;place-items:center;color:#fff;box-shadow:0 4px 14px rgba(43,176,208,.35);flex:none}
+.logo .ic{width:20px;height:20px;stroke-width:2.3}
+.marke b{display:block;color:#fff;font-size:15.5px;letter-spacing:.2px;line-height:1.2}
+.marke small{font-size:11.5px}
+.nav a{display:flex;align-items:center;gap:11px;padding:9px 12px;border-radius:9px;color:var(--nav-tx);text-decoration:none;font-weight:500;cursor:pointer;position:relative;user-select:none}
+.nav a:hover{background:rgba(255,255,255,.06);color:#dbe5ee}
+.nav a.aktiv{background:rgba(43,176,208,.15);color:#fff}
+.nav a.aktiv::before{content:"";position:absolute;left:-12px;top:8px;bottom:8px;width:3px;border-radius:0 3px 3px 0;background:#2bb0d0}
+.nav a .ic{width:18px;height:18px}
+.nav-gruppe{font-size:10.5px;text-transform:uppercase;letter-spacing:.9px;color:#5b6e81;padding:20px 12px 6px;font-weight:600}
+.nav-zahl{margin-left:auto;background:#2bb0d0;color:#04222c;font-size:11px;font-weight:700;border-radius:99px;padding:0 7px;min-width:20px;text-align:center;line-height:18px;font-style:normal}
+.nav-fuss{margin-top:auto;padding:12px 13px;border-radius:11px;background:var(--nav2);font-size:12px;line-height:1.5}
+.nav-fuss b{color:#dbe5ee;font-weight:500;display:flex;align-items:center;gap:8px;margin-bottom:2px}
+
+.pspalte{background:var(--fl);border-right:1px solid var(--li);display:flex;flex-direction:column;min-height:0}
+.pl-kopf{display:flex;align-items:center;justify-content:space-between;padding:22px 16px 12px 20px}
+.pl-kopf h2{font-size:15px;display:flex;align-items:baseline;gap:7px}
+.pl-kopf h2 small{color:var(--tx3);font-weight:500;font-size:12.5px}
+.suchfeld{margin:0 16px 8px;position:relative;display:block}
+.suchfeld .ic{position:absolute;left:11px;top:50%;transform:translateY(-50%);color:var(--tx3)}
+.suchfeld input{padding-left:34px;background:var(--fl2)}
+#p-liste{list-style:none;overflow:auto;flex:1;padding:4px 8px 16px}
+.pe{display:flex;gap:11px;align-items:center;padding:10px 11px;border-radius:11px;cursor:pointer}
+.pe:hover{background:var(--fl2)}
+.pe.aktiv{background:var(--ak-h)}
+.pe-text{min-width:0;flex:1}
+.pe-text b{display:block;font-weight:600;font-size:13.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pe-text small{display:block;color:var(--tx3);font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;line-height:1.4}
+.pe-text .pe-diag{color:var(--tx2)}
+.pl-leer{padding:30px 12px;text-align:center;color:var(--tx3);font-size:13px}
+.avatar{width:36px;height:36px;border-radius:50%;flex:none;display:grid;place-items:center;font-weight:650;font-size:13px;color:hsl(var(--h) 45% 30%);background:hsl(var(--h) 55% 91%)}
+.avatar.gross{width:54px;height:54px;font-size:19px}
+@media (prefers-color-scheme:dark){.avatar{color:hsl(var(--h) 60% 82%);background:hsl(var(--h) 30% 22%)}}
+
+.zp{width:9px;height:9px;border-radius:50%;flex:none;display:inline-block}
+.zp.z-aktuell{background:var(--ok)}.zp.z-veraltet{background:var(--wa)}.zp.z-fehler{background:var(--kr)}
+.zp.z-laufend{background:#2bb0d0;animation:puls 1.5s infinite}
+.zp.z-ohne,.zp.z-abgebrochen{background:var(--li2)}.zp.z-leer{border:1.5px solid var(--li2)}
+@keyframes puls{0%{box-shadow:0 0 0 0 rgba(43,176,208,.6)}70%{box-shadow:0 0 0 7px rgba(43,176,208,0)}100%{box-shadow:0 0 0 0 rgba(43,176,208,0)}}
+
+main{overflow:auto;min-width:0;container-type:inline-size}
+.seite{max-width:1280px;margin:0 auto;padding:30px 36px 60px}
+.ansicht{display:none}.ansicht.aktiv{display:block}
+
+/* ── Bausteine ── */
+.seite-kopf{display:flex;align-items:flex-end;gap:16px;margin-bottom:24px}
+.seite-kopf h1{font-size:25px;letter-spacing:-.4px;line-height:1.2}
+.seite-kopf p{color:var(--tx2);margin-top:4px}
+.gespeichert{margin-left:auto;color:var(--ok);font-size:13px;font-weight:500;display:flex;align-items:center;gap:6px;opacity:0;transition:opacity .3s}
+.gespeichert.an{opacity:1}
+.kopf{display:flex;align-items:center;gap:16px;margin-bottom:22px;flex-wrap:wrap}
+.kopf h1{font-size:24px;letter-spacing:-.4px;line-height:1.2}
+.kopf-meta{color:var(--tx2);font-size:13px;display:flex;gap:8px;flex-wrap:wrap;margin-top:4px;align-items:center}
+.trenner{color:var(--tx3)}
+.kopf-aktionen{margin-left:auto;display:flex;gap:8px;flex-wrap:wrap}
+
+.karte{background:var(--fl);border:1px solid var(--li);border-radius:var(--r);box-shadow:var(--sch);min-width:0}
+.karte-kopf{display:flex;align-items:center;gap:10px;padding:15px 20px;border-bottom:1px solid var(--li);min-height:56px}
+.karte-kopf h3{font-size:14px;font-weight:650;display:flex;align-items:center;gap:9px}
+.karte-kopf h3 .ic{width:17px;height:17px;color:var(--ak)}
+.karte-kopf .rechts{margin-left:auto}
+.karte-inhalt{padding:18px 20px}
+.karte-inhalt.dicht{padding:4px 20px}
+.zahl{margin-left:auto;background:var(--ak-h);color:var(--ak-t);font-size:12px;font-weight:650;border-radius:99px;padding:1px 9px}
+.stapel{display:flex;flex-direction:column;gap:18px;min-width:0}
+
+.knopf{display:inline-flex;align-items:center;justify-content:center;gap:7px;font-weight:550;font-size:13.5px;border:1px solid var(--li2);background:var(--fl);padding:8px 14px;border-radius:9px;cursor:pointer;white-space:nowrap;transition:background .12s,border-color .12s}
+.knopf:hover{background:var(--fl2);border-color:var(--tx3)}
+.knopf.haupt{background:#0e7490;border-color:#0e7490;color:#fff;box-shadow:0 1px 2px rgba(14,116,144,.3)}
+.knopf.haupt:hover{background:#0b5f77;border-color:#0b5f77}
+.knopf.klein{padding:5px 10px;font-size:12.5px}
+.knopf.text{border-color:transparent;background:none;color:var(--tx2)}
+.knopf.text:hover{background:var(--fl3)}
+.knopf.gefahr{color:var(--kr)}
+.knopf.gefahr:hover{border-color:var(--kr)}
+.knopf.breit{width:100%;white-space:normal;text-align:center;line-height:1.3}
+.knopf:disabled{opacity:.5;cursor:default}
+.icon-knopf{width:32px;height:32px;display:grid;place-items:center;border-radius:9px;border:1px solid var(--li2);background:var(--fl);color:var(--tx2);cursor:pointer;flex:none}
+.icon-knopf:hover{background:var(--fl2);color:var(--tx)}
+.icon-knopf.gefahr:hover{color:var(--kr);border-color:var(--kr)}
+
+label.f{display:block;font-size:12.5px;font-weight:550;color:var(--tx2);margin-bottom:5px}
+input,select,textarea{width:100%;background:var(--fl);border:1px solid var(--li2);border-radius:9px;padding:9px 11px;transition:border-color .12s,box-shadow .12s}
+input:focus,select:focus,textarea:focus{outline:none;border-color:var(--ak);box-shadow:0 0 0 3px color-mix(in srgb,var(--ak) 20%,transparent)}
+textarea{min-height:78px;resize:vertical;line-height:1.55;field-sizing:content}
+textarea.gross{min-height:150px}
+.felder{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px 16px}
+.felder.stamm{grid-template-columns:minmax(0,2fr) minmax(0,1fr) minmax(0,1fr)}
+.felder .breit{grid-column:1/-1}
+.felder p.klein{margin-top:5px}
+
+.pill{display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:550;padding:2px 10px;border-radius:99px;background:var(--fl3);color:var(--tx2);white-space:nowrap;line-height:20px}
+.pill.ok{background:var(--ok-h);color:var(--ok)}.pill.wa{background:var(--wa-h);color:var(--wa)}
+.pill.kr{background:var(--kr-h);color:var(--kr)}.pill.ak{background:var(--ak-h);color:var(--ak-t)}
+.pill .ic{width:13px;height:13px}
+.ab{display:inline-grid;place-items:center;min-width:27px;height:20px;padding:0 6px;border-radius:6px;font-size:11px;font-weight:700;color:#fff;background:var(--c);letter-spacing:.2px;flex:none;line-height:1}
+
+.banner{display:flex;gap:12px;align-items:center;padding:12px 16px;border-radius:12px;margin-bottom:16px;font-size:13.5px;border:1px solid transparent}
+.banner>.ic{width:18px;height:18px}
+.banner>div{flex:1}
+.banner.wa{background:var(--wa-h);border-color:color-mix(in srgb,var(--wa) 25%,transparent)}.banner.wa>.ic{color:var(--wa)}
+.banner.kr{background:var(--kr-h);border-color:color-mix(in srgb,var(--kr) 25%,transparent)}.banner.kr>.ic{color:var(--kr)}
+.banner.ak{background:var(--ak-h)}.banner.ak>.ic{color:var(--ak)}
+.banner ul{margin:4px 0 0 18px;font-size:12.5px;color:var(--tx2)}
+
+.spinner{width:22px;height:22px;border-radius:50%;border:2.5px solid color-mix(in srgb,var(--ak) 22%,transparent);border-top-color:var(--ak);animation:dreh .8s linear infinite;flex:none;display:inline-block}
+.spinner.klein{width:15px;height:15px;border-width:2px}
+.spinner.mini{width:11px;height:11px;border-width:2px}
+@keyframes dreh{to{transform:rotate(360deg)}}
+
+.leer{display:flex;flex-direction:column;align-items:center;text-align:center;padding:60px 24px;color:var(--tx2)}
+.leer-icon{width:64px;height:64px;border-radius:18px;background:var(--ak-h);color:var(--ak);display:grid;place-items:center;margin-bottom:18px}
+.leer-icon .ic{width:30px;height:30px;stroke-width:1.8}
+.leer h3{font-size:17px;color:var(--tx);margin-bottom:6px}
+.leer p{max-width:440px;margin-bottom:20px}
+
+.schalter{position:relative;width:42px;height:24px;flex:none;cursor:pointer;display:inline-block}
+.schalter input{position:absolute;inset:0;opacity:0;margin:0;cursor:pointer;z-index:1}
+.schalter span{position:absolute;inset:0;border-radius:99px;background:var(--li2);transition:.18s}
+.schalter span::after{content:"";position:absolute;top:3px;left:3px;width:18px;height:18px;border-radius:50%;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.25);transition:.18s}
+.schalter input:checked+span{background:#0e7490}
+.schalter input:checked+span::after{transform:translateX(18px)}
+.schalter input:focus-visible+span{box-shadow:0 0 0 3px color-mix(in srgb,var(--ak) 30%,transparent)}
+.segment{display:inline-flex;background:var(--fl3);border-radius:10px;padding:3px;gap:2px;flex:none}
+.segment button{border:0;background:none;padding:5px 14px;border-radius:7px;cursor:pointer;color:var(--tx2);font-weight:550;font-variant-numeric:tabular-nums}
+.segment button.an{background:var(--fl);color:var(--tx);box-shadow:0 1px 3px rgba(15,23,42,.12)}
+
+.einstellung{display:flex;gap:14px;align-items:center;padding:16px 20px;border-bottom:1px solid var(--li)}
+.einstellung:last-child{border-bottom:0}
+.e-icon{width:36px;height:36px;border-radius:10px;background:var(--ak-h);color:var(--ak);display:grid;place-items:center;flex:none;align-self:flex-start}
+.e-icon .ic{width:18px;height:18px}
+.e-text{flex:1;min-width:0}
+.e-text b{display:block;font-weight:650;font-size:14px}
+.e-text p{font-size:12.5px;color:var(--tx2);margin-top:2px}
+.e-text p.warnung{color:var(--wa);display:flex;gap:6px;align-items:flex-start;margin-top:6px}
+.e-text p.warnung .ic{margin-top:2px}
+.einstellung input[type=number]{width:76px;flex:none;text-align:center}
+
+.speicherleiste{position:sticky;bottom:14px;margin-top:20px;display:flex;align-items:center;gap:10px;padding:10px 12px 10px 18px;background:color-mix(in srgb,var(--fl) 90%,transparent);backdrop-filter:blur(10px);border:1px solid var(--li);border-radius:13px;box-shadow:var(--sch2);z-index:3}
+.speicherleiste .zustand{display:flex;align-items:center;gap:8px;color:var(--tx2);font-size:13px;margin-right:auto}
+.speicherleiste .zustand .ic{color:var(--ok)}
+.speicherleiste .zustand.offen{color:var(--wa)}
+.speicherleiste .zustand.offen .ic{color:var(--wa)}
+
+#toast{position:fixed;bottom:26px;left:50%;transform:translate(-50%,14px);background:#0f172a;color:#fff;padding:11px 12px 11px 16px;border-radius:12px;font-size:13.5px;opacity:0;transition:.22s;pointer-events:none;z-index:20;display:flex;align-items:center;gap:12px;box-shadow:0 14px 34px rgba(0,0,0,.25);max-width:min(560px,92vw)}
+#toast.an{opacity:1;transform:translate(-50%,0);pointer-events:auto}
+#toast.fehler{background:#7f1d1d}
+#toast button{background:rgba(255,255,255,.14);color:#fff;border:0;font-weight:550;padding:5px 11px;border-radius:8px;cursor:pointer;white-space:nowrap}
+#toast button:hover{background:rgba(255,255,255,.24)}
+
+/* ── Diagnosen ── */
+.rahmen{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:18px}
+.chip{display:inline-flex;align-items:center;gap:7px;padding:5px 12px;border-radius:99px;background:var(--fl);border:1px solid var(--li);font-size:12.5px;color:var(--tx2)}
+.chip .ic{width:14px;height:14px;color:var(--tx3)}
+.chip.an .ic{color:var(--ak)}
+.chip b{color:var(--tx);font-weight:650}
+.hinweis-zeile{display:flex;align-items:center;gap:8px;color:var(--tx2);font-size:13px;margin:-4px 0 14px}
+.d-raster{display:grid;grid-template-columns:minmax(0,1.65fr) minmax(300px,1fr);gap:18px;align-items:start}
+.d-raster.gedimmt{opacity:.7}
+.disclaimer{display:flex;gap:8px;align-items:center;justify-content:center;color:var(--tx3);font-size:12.5px;margin-top:28px;text-align:center}
+
+.lauf{margin-bottom:18px;overflow:hidden}
+.lauf-kopf{display:flex;align-items:center;gap:14px;padding:16px 20px}
+.lauf-kopf b{display:block;font-size:14.5px}
+.lauf-kopf small{color:var(--tx2);font-size:12.5px}
+.lauf-balken{height:4px;background:var(--fl3)}
+.lauf-balken i{display:block;height:100%;background:linear-gradient(90deg,#2bb0d0,#0e7490);transition:width .6s}
+.lauf-agenten{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:10px;padding:16px 20px;background:var(--fl2)}
+.la{background:var(--fl);border:1px solid var(--li);border-radius:11px;padding:11px 13px}
+.la.laufend{border-color:color-mix(in srgb,var(--ak) 45%,var(--li))}
+.la-kopf{display:flex;align-items:center;gap:8px;font-size:12.5px}
+.la-kopf code{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1;min-width:0;font-family:var(--mono);font-size:12px}
+.la-kopf .ic.ok{color:var(--ok)}.la-kopf .ic.kr{color:var(--kr)}
+.schritte{display:flex;gap:4px;margin:11px 0 6px}
+.schritte i{flex:1;height:4px;border-radius:2px;background:var(--fl3)}
+.schritte i.ok{background:var(--ak)}
+.schritte i.jetzt{background:var(--ak);animation:blinken .9s ease-in-out infinite alternate}
+@keyframes blinken{from{opacity:.25}to{opacity:.9}}
+.la small{color:var(--tx2);font-size:12px;display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.la.fehler small{color:var(--kr);white-space:normal;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical}
+
+.hero{border-radius:var(--r);overflow:hidden;box-shadow:var(--sch2);border:1px solid var(--li);background:var(--fl)}
+.hero-oben{background:radial-gradient(130% 150% at 100% 0%,#1a9cc0 0%,#0e7490 42%,#0a4a60 100%);color:#fff;padding:26px 28px;display:flex;gap:24px;align-items:center}
+.hero-text{min-width:0;flex:1}
+.eyebrow{font-size:11.5px;text-transform:uppercase;letter-spacing:1.2px;font-weight:650;color:#a8e6f5;display:flex;align-items:center;gap:7px}
+.hero h2{font-size:30px;letter-spacing:-.6px;line-height:1.15;margin:8px 0 10px;overflow-wrap:anywhere}
+.hero-meta{display:flex;align-items:center;gap:10px;flex-wrap:wrap;color:#d3eef6;font-size:13.5px}
+.icd{background:rgba(255,255,255,.16);color:#fff;padding:2px 9px;border-radius:7px;font-family:var(--mono);font-size:12.5px;font-weight:600}
+.hero-punkte{display:flex;gap:6px;margin-top:16px;flex-wrap:wrap}
+.hp{display:inline-flex;align-items:center;gap:7px;font-size:12px;padding:3px 10px 3px 3px;border-radius:99px;background:rgba(255,255,255,.13);color:#eaf8fc}
+.hp.nein{opacity:.5;background:transparent;box-shadow:inset 0 0 0 1px rgba(255,255,255,.35)}
+.hp.nein .ab{background:rgba(255,255,255,.25)}
+.ring{flex:none;position:relative;width:104px;height:104px}
+.ring svg{width:104px;height:104px;transform:rotate(-90deg)}
+.ring-text{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;line-height:1.05}
+.ring-text b{font-size:24px;font-variant-numeric:tabular-nums}
+.ring-text small{font-size:11px;opacity:.8;margin-top:3px}
+.hero-unten{padding:6px 28px 10px}
+.unter-titel{font-size:11.5px;text-transform:uppercase;letter-spacing:.9px;font-weight:650;color:var(--tx3);padding:14px 0 4px}
+
+.nennung{display:flex;gap:12px;padding:12px 0;border-bottom:1px solid var(--li)}
+.nennung:last-child{border-bottom:0}
+.nennung>.ab{margin-top:1px}
+.nennung>div{min-width:0;flex:1}
+.nennung-kopf{font-size:12.5px;color:var(--tx3);display:flex;gap:4px 10px;align-items:center;flex-wrap:wrap;margin-bottom:3px}
+.nennung-kopf code{color:var(--tx2);font-family:var(--mono);font-size:12px}
+.nennung p{font-size:13.5px}
+.refs{display:flex;gap:5px;flex-wrap:wrap;margin-top:6px}
+.ref{font-size:11.5px;font-weight:650;color:var(--ak-t);background:var(--ak-h);padding:1px 7px;border-radius:5px;cursor:pointer;text-decoration:none;font-variant-numeric:tabular-nums}
+.ref:hover{background:var(--ak);color:#fff}
+
+.dd-liste{padding:6px}
+.dd>summary,.einzeln>summary{list-style:none;cursor:pointer}
+.dd>summary::-webkit-details-marker,.einzeln>summary::-webkit-details-marker,.agent>summary::-webkit-details-marker,.auszug-d>summary::-webkit-details-marker{display:none}
+.dd>summary{display:grid;grid-template-columns:30px minmax(0,1fr) auto 16px;gap:14px;align-items:center;padding:12px 14px;border-radius:10px}
+.dd>summary:hover,.dd[open]>summary{background:var(--fl2)}
+.dd+.dd{border-top:1px solid var(--li)}
+.rang{width:28px;height:28px;border-radius:8px;background:var(--fl3);color:var(--tx2);display:grid;place-items:center;font-weight:700;font-size:13px;font-variant-numeric:tabular-nums}
+.dd-name b{font-weight:600;font-size:14.5px}
+.dd-name small{display:block;color:var(--tx3);font-size:12px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.icd-klein{font-family:var(--mono);font-size:11.5px;color:var(--tx2);margin-left:8px;background:var(--fl3);padding:1px 6px;border-radius:5px;white-space:nowrap}
+.zust{display:flex;align-items:center;gap:10px}
+.zust small{font-size:12.5px;color:var(--tx2);font-variant-numeric:tabular-nums;min-width:28px;text-align:right;font-weight:600}
+.segmente{display:flex;gap:3px}
+.segmente i{width:var(--w,16px);height:8px;border-radius:3px;background:var(--fl3);box-shadow:inset 0 0 0 1px var(--li2)}
+.segmente i.ja{background:var(--c);box-shadow:none}
+.pfeil{color:var(--tx3);transition:transform .15s}
+details[open]>summary .pfeil{transform:rotate(180deg)}
+.dd-inhalt{padding:0 14px 6px 58px}
+.einzeln{border-top:1px solid var(--li);margin-top:4px}
+.einzeln>summary{display:flex;align-items:center;gap:10px;padding:13px 14px;color:var(--tx2);font-size:13px;border-radius:10px}
+.einzeln>summary:hover{background:var(--fl2)}
+.einzeln>summary b{color:var(--tx)}
+.einzeln .dd{opacity:.85}
+
+.matrix-wrap{overflow-x:auto}
+.matrix{width:100%;border-collapse:collapse}
+.matrix th,.matrix td{padding:9px 12px;border-bottom:1px solid var(--li);text-align:center;font-size:13px;white-space:nowrap}
+.matrix tr:last-child td{border-bottom:0}
+.matrix th:first-child,.matrix td:first-child{text-align:left;white-space:normal;min-width:190px;padding-left:20px}
+.matrix th:last-child,.matrix td:last-child{padding-right:20px}
+.matrix thead th{font-weight:550;color:var(--tx2);font-size:12px;vertical-align:bottom;background:var(--fl2)}
+.matrix thead th small{display:block;font-weight:400;color:var(--tx3);max-width:110px;overflow:hidden;text-overflow:ellipsis;margin:5px auto 0;font-family:var(--mono);font-size:11px}
+.matrix tbody tr:hover td{background:var(--fl2)}
+.m-rang{display:inline-block;width:22px;color:var(--tx3);font-variant-numeric:tabular-nums;font-weight:600}
+.zelle{display:inline-grid;place-items:center;width:27px;height:27px;border-radius:8px;font-weight:700;font-size:12px;color:#fff;background:color-mix(in srgb,var(--c) var(--s),var(--fl))}
+.zelle.hell{color:var(--tx)}
+.zelle.ohne{background:none;color:var(--li2);font-weight:400}
+
+.frage{padding:12px 0;border-bottom:1px solid var(--li)}
+.frage:last-of-type{border-bottom:0;margin-bottom:12px}
+.frage-kopf{display:flex;gap:10px;justify-content:space-between;align-items:flex-start;font-weight:550;margin-bottom:7px}
+.frage-von{display:flex;gap:3px;flex:none}
+.frage textarea{min-height:40px;font-size:13px}
+
+.quelle{display:flex;gap:11px;padding:12px 0;border-bottom:1px solid var(--li);border-radius:8px;transition:background .3s}
+.quelle:last-child{border-bottom:0}
+.quelle>div{min-width:0;flex:1}
+.quelle.blink{animation:hervor 1.6s ease-out}
+@keyframes hervor{0%{background:var(--ak-h);box-shadow:0 0 0 6px var(--ak-h)}100%{background:transparent;box-shadow:0 0 0 6px transparent}}
+.q-nr{width:26px;height:26px;border-radius:7px;background:var(--ak-h);color:var(--ak-t);display:grid;place-items:center;font-size:12px;font-weight:700;flex:none}
+.q-titel{font-weight:550;font-size:13px;overflow-wrap:anywhere}
+.q-titel a{color:var(--tx);text-decoration:none}
+.q-titel a:hover{color:var(--ak);text-decoration:underline}
+.q-titel .ic{margin-left:4px;vertical-align:-1px;color:var(--tx3)}
+.q-meta{font-size:12px;color:var(--tx3);display:flex;gap:6px;align-items:center;flex-wrap:wrap;margin-top:2px}
+.q-meta .ab{height:17px;min-width:23px;font-size:10px}
+.q-diag{font-size:12px;color:var(--tx2);margin-top:3px}
+.auszug-d>summary{font-size:12px;color:var(--ak);cursor:pointer;margin-top:4px;list-style:none;display:inline-flex;gap:4px;align-items:center}
+.auszug{white-space:pre-wrap;font-size:12px;color:var(--tx2);background:var(--fl2);border:1px solid var(--li);border-radius:8px;padding:9px 11px;margin-top:6px;max-height:200px;overflow:auto}
+
+.agent{border-bottom:1px solid var(--li)}
+.agent:last-child{border-bottom:0}
+.agent>summary{display:flex;align-items:center;gap:9px;padding:12px 0;cursor:pointer;list-style:none;font-size:13px}
+.agent>summary code{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-family:var(--mono);font-size:12px}
+.agent>summary small{color:var(--tx3);font-variant-numeric:tabular-nums}
+.agent-inhalt{padding:0 0 14px 36px;font-size:12.5px;color:var(--tx2)}
+.agent-inhalt ol{margin:2px 0 6px 18px;color:var(--tx)}
+.ag-titel{font-size:11px;text-transform:uppercase;letter-spacing:.8px;font-weight:650;color:var(--tx3);margin:10px 0 4px}
+.such{display:inline-flex;align-items:center;gap:5px;background:var(--fl3);border-radius:6px;padding:2px 8px;margin:2px 4px 2px 0;font-size:12px}
+.fehlertext{color:var(--kr);background:var(--kr-h);border-radius:8px;padding:7px 10px;margin-bottom:6px;overflow-wrap:anywhere}
+.hinweistext{color:var(--wa);display:flex;gap:6px;align-items:flex-start;margin-bottom:4px}
+.hinweistext .ic{margin-top:2px}
+
+.kennzahlen{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:14px;margin-bottom:22px}
+.kz{display:flex;gap:13px;align-items:center;background:var(--fl);border:1px solid var(--li);border-radius:var(--r);padding:15px 17px;box-shadow:var(--sch)}
+.kz-icon{width:40px;height:40px;border-radius:11px;display:grid;place-items:center;background:var(--fl3);color:var(--tx2)}
+.kz-icon .ic{width:19px;height:19px}
+.kz.ok .kz-icon{background:var(--ok-h);color:var(--ok)}.kz.ak .kz-icon{background:var(--ak-h);color:var(--ak)}.kz.wa .kz-icon{background:var(--wa-h);color:var(--wa)}
+.kz b{display:block;font-size:23px;line-height:1.1;font-variant-numeric:tabular-nums}
+.kz span{font-size:12.5px;color:var(--tx2)}
+.ueb{display:grid;grid-template-columns:repeat(auto-fill,minmax(290px,1fr));gap:16px}
+.ueb-karte{cursor:pointer;padding:18px 18px 14px;transition:box-shadow .15s,transform .15s,border-color .15s;display:flex;flex-direction:column}
+.ueb-karte:hover{box-shadow:var(--sch2);transform:translateY(-2px);border-color:var(--li2)}
+.ueb-kopf{display:flex;gap:12px;align-items:center;margin-bottom:14px}
+.ueb-kopf>div{min-width:0;flex:1}
+.ueb-kopf b{display:block;font-weight:650;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ueb-kopf small{color:var(--tx3);font-size:12px}
+.ueb-diag{list-style:none;display:flex;flex-direction:column;gap:8px;flex:1}
+.ueb-diag li{display:grid;grid-template-columns:22px minmax(0,1fr) 34px 54px;gap:8px;align-items:center;font-size:13px}
+.ueb-diag li:first-child{font-weight:600}
+.ueb-diag .rang{width:22px;height:22px;font-size:11.5px;border-radius:6px}
+.ueb-diag li:first-child .rang{background:#0e7490;color:#fff}
+.ueb-dn{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ueb-st{color:var(--tx2);font-size:12px;text-align:right;font-variant-numeric:tabular-nums}
+.mini-balken{height:6px;border-radius:3px;background:var(--fl3);overflow:hidden}
+.mini-balken i{display:block;height:100%;background:var(--ak);border-radius:3px}
+.ueb-leer{color:var(--tx3);font-size:13px;flex:1;padding:6px 0}
+.ueb-fuss{display:flex;align-items:center;gap:6px;color:var(--tx3);font-size:12px;margin-top:14px;padding-top:12px;border-top:1px solid var(--li)}
+.ueb-fuss .pill{margin-left:auto}
+
+/* ── Patientenakte ── */
+.abschnitt-kopf{display:flex;gap:13px;align-items:center;padding:15px 20px;border-bottom:1px solid var(--li)}
+.abschnitt-kopf h3{font-size:14.5px}
+.abschnitt-kopf p{font-size:12.5px;color:var(--tx3)}
+.abschnitt-kopf .e-icon{align-self:center}
+.gefahrenzone{display:flex;align-items:center;gap:16px;margin-top:28px;padding:16px 20px;border:1px solid color-mix(in srgb,var(--kr) 30%,var(--li));border-radius:var(--r)}
+.gefahrenzone>div{flex:1}
+.gefahrenzone p{font-size:12.5px;color:var(--tx2)}
+
+/* ── Adminbereich & Technik ── */
+.admin-raster{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,1fr);gap:18px;align-items:start}
+.ablage{display:flex;flex-direction:column;align-items:center;gap:3px;padding:24px;border:1.5px dashed var(--li2);border-radius:12px;background:var(--fl2);cursor:pointer;text-align:center;transition:.15s;color:var(--tx2)}
+.ablage:hover,.ablage.drueber{border-color:var(--ak);background:var(--ak-h)}
+.ablage .ic{width:26px;height:26px;color:var(--ak);margin-bottom:6px;stroke-width:1.8}
+.ablage b{color:var(--tx);font-weight:600}
+.ablage span{font-size:12.5px}
+.buecher{margin-top:10px}
+.buch{display:flex;align-items:center;gap:13px;padding:12px 2px;border-bottom:1px solid var(--li)}
+.buch:last-child{border-bottom:0}
+.buch-icon{width:34px;height:44px;border-radius:4px 7px 7px 4px;background:linear-gradient(160deg,#1a9cc0,#0a4a60);color:#fff;display:grid;place-items:center;flex:none;box-shadow:inset 4px 0 0 rgba(0,0,0,.18),0 2px 5px rgba(10,74,96,.25)}
+.buch-icon .ic{width:15px;height:15px}
+.buch.aus .buch-icon{background:var(--fl3);color:var(--tx3);box-shadow:inset 4px 0 0 rgba(0,0,0,.05)}
+.buch-text{flex:1;min-width:0}
+.buch-text b{display:block;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.buch.aus .buch-text b{color:var(--tx3)}
+.buch-text small{color:var(--tx3);font-size:12px;display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:2px}
+.buch-text .pill{font-size:11px;line-height:17px;padding:1px 8px}
+.leer-zeile{padding:18px 0 6px;text-align:center}
+.index-lauf{display:grid;grid-template-columns:auto 1fr auto;gap:6px 10px;align-items:center;background:var(--ak-h);border-radius:11px;padding:11px 14px;margin-bottom:14px;font-size:13px}
+.index-lauf .mini-balken{grid-column:1/-1;background:color-mix(in srgb,var(--ak) 15%,transparent)}
+.fuss{margin-top:14px}
+.fuss code{font-family:var(--mono);font-size:11.5px;overflow-wrap:anywhere}
+.agentenliste{display:flex;flex-direction:column;gap:9px;margin:14px 0}
+.agentzeile{display:grid;grid-template-columns:30px minmax(0,1fr) 62px;gap:10px;align-items:center}
+.agentzeile .pill{justify-content:center}
+.zaehler{display:inline-flex;align-items:center;border:1px solid var(--li2);border-radius:9px;overflow:hidden;background:var(--fl)}
+.zaehler button{width:32px;height:30px;border:0;background:none;font-size:17px;cursor:pointer;color:var(--tx2)}
+.zaehler button:hover{background:var(--fl3);color:var(--tx)}
+.zaehler span{min-width:30px;text-align:center;font-weight:650;font-variant-numeric:tabular-nums}
+.trennlinie{border-top:1px solid var(--li);margin:18px -20px 16px}
+
+@container (max-width:1000px){.d-raster,.admin-raster{grid-template-columns:minmax(0,1fr)}}
+@container (max-width:640px){
+  .seite{padding:20px 16px 48px}.felder,.felder.stamm{grid-template-columns:minmax(0,1fr)}
+  .hero-oben{flex-direction:column;align-items:flex-start}.hero h2{font-size:24px}
+  .dd>summary{grid-template-columns:28px minmax(0,1fr) 16px}.dd .zust{grid-column:2;grid-row:2}.dd-inhalt{padding-left:14px}
+}
+@media (max-width:1180px){
+  .app{grid-template-columns:70px 280px minmax(0,1fr)}.app.ohne-liste{grid-template-columns:70px minmax(0,1fr)}
+  .nav{padding:18px 10px}.marke{justify-content:center;padding:2px 0 22px}.marke div,.nav a span,.nav-gruppe,.nav-fuss{display:none}
+  .nav a{justify-content:center;padding:11px 0}.nav a.aktiv::before{left:-10px}
+  .nav-zahl{position:absolute;top:3px;right:6px;margin:0}
+}
+@media (max-width:760px){
+  .app,.app.ohne-liste{grid-template-columns:minmax(0,1fr);grid-template-rows:auto auto 1fr;height:auto;min-height:100vh}
+  .nav{flex-direction:row;padding:8px 12px;gap:4px;overflow-x:auto}.marke{padding:0 8px 0 0}
+  .nav a{padding:9px 13px}.nav a.aktiv::before{display:none}
+  .pspalte{border-right:0;border-bottom:1px solid var(--li);max-height:300px}
+  main{overflow:visible}
+}
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
+  <symbol id="i-logo" viewBox="0 0 24 24"><path d="M3 12h4l2.5-6 4 12 2.5-6H21"/></symbol>
+  <symbol id="i-activity" viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></symbol>
+  <symbol id="i-users" viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></symbol>
+  <symbol id="i-user" viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></symbol>
+  <symbol id="i-sliders" viewBox="0 0 24 24"><line x1="21" y1="4" x2="14" y2="4"/><line x1="10" y1="4" x2="3" y2="4"/><line x1="21" y1="12" x2="12" y2="12"/><line x1="8" y1="12" x2="3" y2="12"/><line x1="21" y1="20" x2="16" y2="20"/><line x1="12" y1="20" x2="3" y2="20"/><line x1="14" y1="2" x2="14" y2="6"/><line x1="8" y1="10" x2="8" y2="14"/><line x1="16" y1="18" x2="16" y2="22"/></symbol>
+  <symbol id="i-cpu" viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="2"/><rect x="9" y="9" width="6" height="6"/><path d="M9 1v3M15 1v3M9 20v3M15 20v3M20 9h3M20 14h3M1 9h3M1 14h3"/></symbol>
+  <symbol id="i-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></symbol>
+  <symbol id="i-plus" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></symbol>
+  <symbol id="i-refresh" viewBox="0 0 24 24"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></symbol>
+  <symbol id="i-book" viewBox="0 0 24 24"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></symbol>
+  <symbol id="i-globe" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></symbol>
+  <symbol id="i-help" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></symbol>
+  <symbol id="i-check" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></symbol>
+  <symbol id="i-alert" viewBox="0 0 24 24"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></symbol>
+  <symbol id="i-chevron" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></symbol>
+  <symbol id="i-upload" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></symbol>
+  <symbol id="i-trash" viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></symbol>
+  <symbol id="i-edit" viewBox="0 0 24 24"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4z"/></symbol>
+  <symbol id="i-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></symbol>
+  <symbol id="i-extern" viewBox="0 0 24 24"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></symbol>
+  <symbol id="i-grid" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/></symbol>
+  <symbol id="i-bot" viewBox="0 0 24 24"><rect x="3" y="10" width="18" height="11" rx="3"/><circle cx="12" cy="5" r="2"/><path d="M12 7v3"/><circle cx="8.5" cy="15.5" r="1"/><circle cx="15.5" cy="15.5" r="1"/></symbol>
+  <symbol id="i-save" viewBox="0 0 24 24"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></symbol>
+  <symbol id="i-list" viewBox="0 0 24 24"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></symbol>
+  <symbol id="i-award" viewBox="0 0 24 24"><circle cx="12" cy="8" r="7"/><polyline points="8.21 13.89 7 23 12 20 17 23 15.79 13.88"/></symbol>
+  <symbol id="i-send" viewBox="0 0 24 24"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></symbol>
+  <symbol id="i-info" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></symbol>
+  <symbol id="i-flask" viewBox="0 0 24 24"><path d="M9 3h6"/><path d="M10 3v6L4.5 18.5A2 2 0 0 0 6.2 21.5h11.6a2 2 0 0 0 1.7-3L14 9V3"/><path d="M7 15h10"/></symbol>
+  <symbol id="i-clipboard" viewBox="0 0 24 24"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><rect x="8" y="2" width="8" height="4" rx="1"/></symbol>
+  <symbol id="i-home" viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></symbol>
+  <symbol id="i-dot" viewBox="0 0 24 24"><circle cx="12" cy="12" r="5" fill="currentColor" stroke="none"/></symbol>
+  <symbol id="i-file" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></symbol>
+</defs></svg>
+
+<div class="app ohne-liste">
+  <aside class="nav">
+    <div class="marke"><span class="logo"><svg class="ic"><use href="#i-logo"/></svg></span><div><b>Hippokrates</b><small>Diagnose-Konsens</small></div></div>
+    <a data-ansicht="diagnosen"><svg class="ic"><use href="#i-activity"/></svg><span>Diagnosen</span><em class="nav-zahl" id="nav-laufend" hidden></em></a>
+    <a data-ansicht="patienten"><svg class="ic"><use href="#i-users"/></svg><span>Patientenakte</span></a>
+    <div class="nav-gruppe">Verwaltung</div>
+    <a data-ansicht="admin"><svg class="ic"><use href="#i-sliders"/></svg><span>Adminbereich</span></a>
+    <a data-ansicht="technik"><svg class="ic"><use href="#i-cpu"/></svg><span>Technik</span></a>
+    <div class="nav-fuss" id="system"></div>
+  </aside>
+
+  <section class="pspalte">
+    <div class="pl-kopf"><h2>Patienten <small id="p-anzahl"></small></h2>
+      <button class="icon-knopf" id="p-neu" title="Neuer Patient" aria-label="Neuer Patient"><svg class="ic"><use href="#i-plus"/></svg></button></div>
+    <label class="suchfeld"><svg class="ic"><use href="#i-search"/></svg><input id="p-suche" placeholder="Name, Geburtsdatum, Diagnose" aria-label="Patienten suchen"></label>
+    <ul id="p-liste"></ul>
+  </section>
+
+  <main>
+    <!-- ── Diagnosen (wird vollständig per Skript gezeichnet) ── -->
+    <section class="ansicht" id="ansicht-diagnosen"></section>
+
+    <!-- ── Patientenakte ── -->
+    <section class="ansicht" id="ansicht-patienten"><div class="seite">
+      <div id="akte-leer"></div>
+      <form id="akte" autocomplete="off" hidden>
+        <div class="kopf" id="akte-kopf"></div>
+        <div class="stapel">
+          <div class="karte">
+            <div class="abschnitt-kopf"><span class="e-icon"><svg class="ic"><use href="#i-user"/></svg></span><div><h3>Stammdaten</h3><p>Der Name bleibt auf diesem Rechner und wird nicht an die Sprachmodelle übergeben.</p></div></div>
+            <div class="karte-inhalt felder stamm">
+              <div><label class="f" for="f-name">Name *</label><input id="f-name" required></div>
+              <div><label class="f" for="f-geburtsdatum">Geburtsdatum</label><input id="f-geburtsdatum" type="date"></div>
+              <div><label class="f" for="f-geschlecht">Geschlecht</label><select id="f-geschlecht"><option value="">–</option><option>weiblich</option><option>männlich</option><option>divers</option></select></div>
+            </div>
+          </div>
+          <div class="karte">
+            <div class="abschnitt-kopf"><span class="e-icon"><svg class="ic"><use href="#i-activity"/></svg></span><div><h3>Aktuelle Beschwerden</h3><p>Hauptsymptome, Beginn, Verlauf, Begleitsymptome – je genauer, desto besser grenzen die Agenten ein.</p></div></div>
+            <div class="karte-inhalt"><textarea class="gross" id="f-anamnese" aria-label="Aktuelle Beschwerden" placeholder="z. B. Seit sechs Wochen zunehmende Müdigkeit, Zahnfleischbluten beim Zähneputzen …"></textarea></div>
+          </div>
+          <div class="karte">
+            <div class="abschnitt-kopf"><span class="e-icon"><svg class="ic"><use href="#i-flask"/></svg></span><div><h3>Befunde und Laborwerte</h3><p>Untersuchungsbefunde und Laborwerte mit Einheit und Referenzbereich.</p></div></div>
+            <div class="karte-inhalt"><textarea id="f-befunde" aria-label="Befunde und Laborwerte" placeholder="z. B. Hb 10,9 g/dl, CRP 8 mg/l, Petechien an beiden Unterschenkeln …"></textarea></div>
+          </div>
+          <div class="karte">
+            <div class="abschnitt-kopf"><span class="e-icon"><svg class="ic"><use href="#i-clipboard"/></svg></span><div><h3>Vorgeschichte</h3><p>Bekannte Erkrankungen, Medikamente und Unverträglichkeiten.</p></div></div>
+            <div class="karte-inhalt felder">
+              <div><label class="f" for="f-vorerkrankungen">Vorerkrankungen</label><textarea id="f-vorerkrankungen" placeholder="ggf. mit ICD-10-Code"></textarea></div>
+              <div><label class="f" for="f-medikation">Dauermedikation</label><textarea id="f-medikation" placeholder="Wirkstoff · Dosis · Einnahme"></textarea></div>
+              <div class="breit"><label class="f" for="f-allergien">Allergien und Unverträglichkeiten</label><textarea id="f-allergien" style="min-height:50px"></textarea></div>
+            </div>
+          </div>
+          <div class="karte">
+            <div class="abschnitt-kopf"><span class="e-icon"><svg class="ic"><use href="#i-home"/></svg></span><div><h3>Familie und Lebensumstände</h3><p>Erkrankungen in der Familie, Beruf, Ernährung, Rauchen, Alkohol, Reisen.</p></div></div>
+            <div class="karte-inhalt felder">
+              <div><label class="f" for="f-familienanamnese">Familienanamnese</label><textarea id="f-familienanamnese"></textarea></div>
+              <div><label class="f" for="f-sozialanamnese">Sozialanamnese und Risikofaktoren</label><textarea id="f-sozialanamnese"></textarea></div>
+            </div>
+          </div>
+          <div class="karte">
+            <div class="abschnitt-kopf"><span class="e-icon"><svg class="ic"><use href="#i-help"/></svg></span><div><h3>Ergänzungen</h3><p>Antworten auf Rückfragen der Agenten werden hier automatisch eingetragen.</p></div></div>
+            <div class="karte-inhalt"><textarea id="f-ergaenzungen" aria-label="Ergänzungen"></textarea></div>
+          </div>
+        </div>
+        <div class="speicherleiste"><span class="zustand" id="akte-zustand"></span>
+          <button type="button" class="knopf text" id="akte-verwerfen">Verwerfen</button>
+          <button type="submit" class="knopf haupt"><svg class="ic"><use href="#i-save"/></svg>Speichern</button></div>
+        <div class="gefahrenzone" id="akte-gefahr"><div><b>Patient löschen</b><p>Entfernt die Akte mit allen Abgleichen dauerhaft von diesem Rechner.</p></div>
+          <button type="button" class="knopf gefahr" id="akte-loeschen"><svg class="ic"><use href="#i-trash"/></svg>Löschen</button></div>
+      </form>
+    </div></section>
+
+    <!-- ── Adminbereich: dauerhafte fachliche Vorgaben ── -->
+    <section class="ansicht" id="ansicht-admin"><div class="seite">
+      <div class="seite-kopf"><div><h1>Adminbereich</h1><p>Dauerhafte fachliche Vorgaben – sie gelten für jeden künftigen Abgleich aller Patienten.</p></div>
+        <span class="gespeichert" id="a-gespeichert"><svg class="ic"><use href="#i-check"/></svg>Gespeichert</span></div>
+      <div class="admin-raster">
+        <div class="karte">
+          <div class="karte-kopf"><h3><svg class="ic"><use href="#i-book"/></svg>Fachbibliothek</h3><span class="rechts klein" id="b-zusammenfassung"></span>
+            <button type="button" class="icon-knopf" id="b-index" title="Bibliotheksordner neu einlesen" aria-label="Bibliotheksordner neu einlesen"><svg class="ic"><use href="#i-refresh"/></svg></button></div>
+          <div class="karte-inhalt">
+            <div id="b-status"></div>
+            <label class="ablage" id="b-ablage"><input type="file" id="b-datei" multiple accept=".pdf,.txt,.md" hidden>
+              <svg class="ic"><use href="#i-upload"/></svg><b>Fachbücher hinzufügen</b><span>Dateien hierher ziehen oder klicken · PDF mit Textebene, TXT, MD</span></label>
+            <div class="buecher" id="b-liste"></div>
+            <p class="klein fuss">Nur eingeschaltete Bücher werden von den Agenten durchsucht. Speicherort: <code id="b-ordner"></code></p>
+          </div>
+        </div>
+        <div class="stapel">
+          <div class="karte">
+            <div class="karte-kopf"><h3><svg class="ic"><use href="#i-search"/></svg>Recherche der Agenten</h3></div>
+            <div class="einstellung"><span class="e-icon"><svg class="ic"><use href="#i-globe"/></svg></span>
+              <div class="e-text"><b>Internetrecherche in PubMed</b><p>Agenten dürfen zusätzlich in wissenschaftlichen Abstracts suchen (über Europe PMC) und diese als Beleg zitieren.</p>
+                <p class="warnung"><svg class="ic mini"><use href="#i-alert"/></svg>Dabei verlassen englische Suchbegriffe wie „scurvy gingival bleeding“ den Rechner – keine Namen, aber Symptomkombinationen.</p></div>
+              <label class="schalter"><input type="checkbox" data-einst="internet" aria-label="Internetrecherche"><span></span></label></div>
+            <div class="einstellung"><span class="e-icon"><svg class="ic"><use href="#i-help"/></svg></span>
+              <div class="e-text"><b>Rückfragen stellen</b><p>Agenten dürfen nach fehlenden Angaben fragen, die die Diagnose eingrenzen würden. Antworten fließen in den nächsten Abgleich ein.</p></div>
+              <label class="schalter"><input type="checkbox" data-einst="rueckfragen" aria-label="Rückfragen"><span></span></label></div>
+          </div>
+          <div class="karte">
+            <div class="karte-kopf"><h3><svg class="ic"><use href="#i-list"/></svg>Abgleich und Darstellung</h3></div>
+            <div class="einstellung"><span class="e-icon"><svg class="ic"><use href="#i-refresh"/></svg></span>
+              <div class="e-text"><b>Automatisch neu abgleichen</b><p>Jede gespeicherte Änderung an der Patientenakte startet sofort einen neuen Abgleich.</p></div>
+              <label class="schalter"><input type="checkbox" data-einst="auto_abgleich" aria-label="Automatisch neu abgleichen"><span></span></label></div>
+            <div class="einstellung"><span class="e-icon"><svg class="ic"><use href="#i-award"/></svg></span>
+              <div class="e-text"><b>Diagnosen je Agent</b><p>Wie viele Differentialdiagnosen jeder Agent nennen soll.</p></div>
+              <div class="segment" id="a-max"><button type="button" data-wert="3">3</button><button type="button" data-wert="5">5</button><button type="button" data-wert="7">7</button><button type="button" data-wert="10">10</button></div></div>
+            <div class="einstellung"><span class="e-icon"><svg class="ic"><use href="#i-grid"/></svg></span>
+              <div class="e-text"><b>Einzelnennungen einklappen</b><p>Diagnosen, die nur ein einziger Agent nennt, erscheinen eingeklappt unter der Rangliste.</p></div>
+              <label class="schalter"><input type="checkbox" data-einst="einzelnennungen_einklappen" aria-label="Einzelnennungen einklappen"><span></span></label></div>
+          </div>
+        </div>
+      </div>
+    </div></section>
+
+    <!-- ── Technik ── -->
+    <section class="ansicht" id="ansicht-technik"><div class="seite">
+      <div class="seite-kopf"><div><h1>Technik</h1><p>Sprachmodelle der Agenten, Ollama-Verbindung und Suchparameter.</p></div></div>
+      <form id="t-form" autocomplete="off">
+        <div class="admin-raster">
+          <div class="karte">
+            <div class="karte-kopf"><h3><svg class="ic"><use href="#i-bot"/></svg>Agenten</h3>
+              <div class="rechts zaehler"><button type="button" data-schritt="-1" aria-label="Agent entfernen">−</button><span id="t-anzahl">0</span><button type="button" data-schritt="1" aria-label="Agent hinzufügen">+</button></div></div>
+            <div class="karte-inhalt">
+              <p class="klein">Jeder Agent nutzt ein eigenes Sprachmodell und recherchiert unabhängig von den anderen. Je verschiedener die Modelle, desto aussagekräftiger ist ihre Übereinstimmung.</p>
+              <div id="t-agenten" class="agentenliste"></div>
+              <div id="t-hinweise"></div>
+              <div class="trennlinie"></div>
+              <label class="f" for="t-parallel">Gleichzeitig laufende Agenten</label>
+              <input id="t-parallel" type="number" min="1" max="12" style="width:90px">
+              <p class="klein" style="margin-top:5px">Mehr als 1 nur, wenn der Grafikspeicher mehrere Modelle zugleich fasst.</p>
+            </div>
+          </div>
+          <div class="stapel">
+            <div class="karte">
+              <div class="karte-kopf"><h3><svg class="ic"><use href="#i-cpu"/></svg>Ollama</h3><span class="rechts" id="t-verbindung"></span></div>
+              <div class="karte-inhalt felder">
+                <div class="breit"><label class="f" for="t-url">Adresse</label><input id="t-url"></div>
+                <div class="breit"><label class="f" for="t-embedding">Embedding-Modell für die Fachbibliothek</label><select id="t-embedding"></select>
+                  <p class="klein">Ein Wechsel indexiert alle Fachbücher neu.</p></div>
+              </div>
+            </div>
+            <div class="karte">
+              <div class="karte-kopf"><h3><svg class="ic"><use href="#i-sliders"/></svg>Suche und Abgleich</h3></div>
+              <div class="einstellung"><div class="e-text"><b>Literaturstellen je Suchanfrage</b><p>Wie viele Abschnitte die Bibliothekssuche pro Anfrage liefert (1–10).</p></div>
+                <input id="t-topk" type="number" min="1" max="10" aria-label="Literaturstellen je Suchanfrage"></div>
+              <div class="einstellung"><div class="e-text"><b>ICD-10-Kategorien zusammenfassen</b><p>Nennungen mit gleicher dreistelliger Kategorie (z. B. K35) gelten als dieselbe Diagnose. Fängt Synonyme ab, kann aber bei falsch geratenen Codes Verschiedenes zusammenlegen.</p></div>
+                <label class="schalter"><input type="checkbox" id="t-icd" aria-label="ICD-10-Kategorien zusammenfassen"><span></span></label></div>
+              <div class="einstellung"><div class="e-text"><b>Denkphase zulassen</b><p>Thinking-Modelle (z. B. qwen3) überlegen vor der Antwort. Gründlicher, aber je Agent oft mehrere Minuten länger.</p></div>
+                <label class="schalter"><input type="checkbox" id="t-denken" aria-label="Denkphase zulassen"><span></span></label></div>
+            </div>
+          </div>
+        </div>
+        <div class="speicherleiste"><span class="zustand" id="t-zustand"></span>
+          <button type="submit" class="knopf haupt"><svg class="ic"><use href="#i-save"/></svg>Speichern</button></div>
+      </form>
+    </div></section>
+  </main>
+</div>
+<div id="toast" role="status"></div>
+
+<script>
+'use strict';
+// ── Hilfsfunktionen ─────────────────────────────────────────────────────────
+const $ = s => document.querySelector(s);
+const $$ = s => [...document.querySelectorAll(s)];
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'}[c]));
+const ic = (n, k = '') => `<svg class="ic ${k}" aria-hidden="true"><use href="#i-${n}"/></svg>`;
+const FARBEN = ['#0e7490', '#7c5cd6', '#d97706', '#db2777', '#16a34a', '#2563eb', '#ca8a04', '#be123c', '#0f766e', '#4f46e5', '#ea580c', '#64748b'];
+const farbe = nr => FARBEN[(nr - 1) % FARBEN.length];
+const ab = (nr, modell) => `<span class="ab" style="--c:${farbe(nr)}" title="Agent ${nr}${modell ? ' · ' + esc(modell) : ''}">A${nr}</span>`;
+const zahl = n => Number(n).toLocaleString('de-DE', {maximumFractionDigits: 1});
+const zeit = s => s ? new Date(s).toLocaleString('de-DE', {day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit'}) : '';
+const dauer = (a, b) => { const s = (new Date(b) - new Date(a)) / 1000; return s < 90 ? Math.max(1, Math.round(s)) + ' s' : Math.round(s / 60) + ' min'; };
+const groesse = b => b >= 1e9 ? zahl(b / 1e9) + ' GB' : b >= 1e6 ? zahl(b / 1e6) + ' MB' : Math.max(1, Math.round(b / 1e3)) + ' KB';
+const kurz = m => m.length > 20 ? m.slice(0, 19) + '…' : m;
+const initialen = n => (n || '?').split(/[\s,]+/).filter(Boolean).map(w => w[0]).slice(0, 2).join('').toUpperCase();
+const farbton = n => [...(n || '')].reduce((h, c) => (h * 31 + c.charCodeAt(0)) % 360, 11);
+const avatar = (name, k = '') => `<span class="avatar ${k}" style="--h:${farbton(name)}">${esc(initialen(name))}</span>`;
+const personMeta = p => [p.alter != null ? p.alter + ' Jahre' : '', p.geschlecht].filter(Boolean).join(' · ');
+const banner = (k, icon, html, aktion = '') => `<div class="banner ${k}">${ic(icon)}<div>${html}</div>${aktion}</div>`;
+const leer = (icon, titel, text, aktion = '') => `<div class="leer"><div class="leer-icon">${ic(icon)}</div><h3>${titel}</h3><p>${text}</p>${aktion}</div>`;
+
+const ZUSTAND = {
+  aktuell: ['ok', 'Aktuell'], veraltet: ['wa', 'Veraltet'], laufend: ['ak', 'Abgleich läuft'], fehler: ['kr', 'Fehlgeschlagen'],
+  abgebrochen: ['', 'Abgebrochen'], ohne: ['', 'Kein Abgleich'], leer: ['', 'Keine Angaben'],
+};
+const zustandPill = z => { const [k, t] = ZUSTAND[z] || ['', z]; return `<span class="pill ${k}">${z === 'laufend' ? '<span class="spinner mini"></span>' : ''}${t}</span>`; };
+const AGENT_STATUS = {fertig: ['ok', 'fertig'], fehler: ['kr', 'Fehler'], abgebrochen: ['', 'abgebrochen'], laufend: ['ak', 'läuft'], wartend: ['', 'wartet']};
+const statusPill = s => { const [k, t] = AGENT_STATUS[s] || ['', s]; return `<span class="pill ${k}">${t}</span>`; };
+const SCHRITT = {startet: 'startet', plant: 'plant die Recherche', bibliothek: 'durchsucht die Fachbibliothek', internet: 'sucht in PubMed', diagnose: 'erstellt Diagnosen'};
+
+async function api(pfad, methode = 'GET', daten) {
+  const opt = {method: methode};
+  if (daten instanceof Blob) opt.body = daten;
+  else if (daten !== undefined) { opt.body = JSON.stringify(daten); opt.headers = {'Content-Type': 'application/json'}; }
+  const r = await fetch(pfad, opt);
+  if (!r.ok) {
+    let text = `Fehler ${r.status}`;
+    try { const j = await r.json(); text = typeof j.detail === 'string' ? j.detail : j.detail.map(d => `${d.loc.slice(-1)[0]}: ${d.msg}`).join('; '); } catch {}
+    throw new Error(text);
+  }
+  return r.json();
+}
+let toastZeit;
+function toast(text, aktion = null, fehler = false) {
+  const t = $('#toast');
+  t.innerHTML = `<span>${esc(text)}</span>${aktion ? `<button type="button">${esc(aktion.text)}</button>` : ''}`;
+  t.className = 'an' + (fehler ? ' fehler' : '');
+  if (aktion) t.querySelector('button').onclick = () => { t.className = ''; aktion.fn(); };
+  clearTimeout(toastZeit);
+  toastZeit = setTimeout(() => t.className = '', aktion ? 6000 : 3500);
+}
+const sicher = f => async (...a) => { try { return await f(...a); } catch (e) { toast(e.message, null, true); } };
+
+// ── Zustand und Navigation ──────────────────────────────────────────────────
+const Z = {ansicht: null, patient: null, patienten: [], einst: null, modelle: [], ollamaFehler: '', bib: null};
+const MIT_LISTE = ['diagnosen', 'patienten'];
+
+function zeige(ansicht, patient = Z.patient) {
+  if (Z.ansicht === 'patienten' && formGeaendert() && (ansicht !== 'patienten' || patient !== Z.patient)
+      && !confirm('Ungespeicherte Änderungen in der Patientenakte verwerfen?')) return;
+  Z.ansicht = ansicht;
+  if (MIT_LISTE.includes(ansicht)) Z.patient = patient;
+  history.replaceState(null, '', '#' + ansicht + (MIT_LISTE.includes(ansicht) && Z.patient ? '/' + Z.patient : ''));
+  $$('.nav a').forEach(a => a.classList.toggle('aktiv', a.dataset.ansicht === ansicht));
+  $$('.ansicht').forEach(s => s.classList.toggle('aktiv', s.id === 'ansicht-' + ansicht));
+  $('.app').classList.toggle('ohne-liste', !MIT_LISTE.includes(ansicht));
+  $('main').scrollTop = 0;
+  listeZeigen();
+  sicher({diagnosen: diagnoseLaden, patienten: akteLaden, admin: adminLaden, technik: technikLaden}[ansicht])();
+}
+$$('.nav a').forEach(a => a.onclick = () => zeige(a.dataset.ansicht));
+window.addEventListener('beforeunload', e => { if (formGeaendert()) e.preventDefault(); });
+
+// ── Patientenliste ──────────────────────────────────────────────────────────
+let listeTimer;
+async function listeLaden() {
+  clearTimeout(listeTimer);
+  Z.patienten = await api('/api/patienten');
+  listeZeigen();
+  const laufend = Z.patienten.filter(p => p.zustand === 'laufend').length;
+  $('#nav-laufend').textContent = laufend;
+  $('#nav-laufend').hidden = !laufend;
+  if (laufend) listeTimer = setTimeout(sicher(listeLaden), 3000);
+  if (Z.ansicht === 'diagnosen' && !Z.patient) uebersichtZeigen();
+  if (Z.ansicht === 'patienten' && akteDaten) akteKopf();
+}
+function listeZeigen() {
+  const q = $('#p-suche').value.trim().toLowerCase();
+  const treffer = Z.patienten.filter(p => !q || p.name.toLowerCase().includes(q) || p.geburtsdatum.includes(q)
+    || p.diagnosen.some(d => d.name.toLowerCase().includes(q)));
+  $('#p-anzahl').textContent = Z.patienten.length || '';
+  $('#p-liste').innerHTML = treffer.map(p => {
+    const d = p.diagnosen[0];
+    const unter = p.zustand === 'laufend' ? 'Agenten recherchieren …' : d ? `${d.name} · ${d.stimmen}/${d.agenten_gesamt}` : ZUSTAND[p.zustand][1];
+    return `<li class="pe ${p.id === Z.patient ? 'aktiv' : ''}" data-id="${p.id}">${avatar(p.name)}
+      <span class="pe-text"><b>${esc(p.name)}</b><small>${esc(personMeta(p) || 'ohne Stammdaten')}</small><small class="pe-diag">${esc(unter)}</small></span>
+      <span class="zp z-${p.zustand}" title="${ZUSTAND[p.zustand][1]}"></span></li>`;
+  }).join('') || `<li class="pl-leer">${Z.patienten.length ? 'Keine Treffer' : 'Noch keine Patienten angelegt'}</li>`;
+}
+$('#p-suche').oninput = listeZeigen;
+$('#p-liste').onclick = e => { const li = e.target.closest('[data-id]'); if (li) zeige(Z.ansicht, +li.dataset.id); };
+$('#p-neu').onclick = () => zeige('patienten', 'neu');
+
+// ── Diagnosen ───────────────────────────────────────────────────────────────
+let dTimer, dStand = null, dLief = false;
+const offen = new Set();     // aufgeklappte Abschnitte überstehen das Neuzeichnen
+const entwuerfe = {};        // angefangene Antworten auf Rückfragen
+document.addEventListener('toggle', e => { const k = e.target.dataset?.key; if (k) e.target.open ? offen.add(k) : offen.delete(k); }, true);
+
+async function diagnoseLaden() {
+  clearTimeout(dTimer);
+  const id = Z.patient;
+  if (!id || id === 'neu') { dStand = null; uebersichtZeigen(); return; }
+  const d = await api(`/api/patienten/${id}/abgleich`);
+  if (id !== Z.patient || Z.ansicht !== 'diagnosen') return;
+  const laeuft = d.lauf?.status === 'laufend';
+  const s = JSON.stringify(d);
+  // Nicht neu zeichnen, während eine Antwort getippt wird – sonst ginge der Fokus verloren.
+  if (s !== dStand && !document.activeElement?.matches('#ansicht-diagnosen textarea')) {
+    dStand = s;
+    $('#ansicht-diagnosen').innerHTML = diagnoseHtml(d);
+    $$('#ansicht-diagnosen details[data-key]').forEach(el => el.open = offen.has(el.dataset.key));
+  }
+  if (dLief && !laeuft) listeLaden();
+  dLief = laeuft;
+  if (laeuft || s !== dStand) dTimer = setTimeout(sicher(diagnoseLaden), 1500);
+}
+
+function uebersichtZeigen() {
+  if (Z.ansicht !== 'diagnosen' || (Z.patient && Z.patient !== 'neu')) return;
+  const P = Z.patienten, n = k => P.filter(p => p.zustand === k).length;
+  let h = `<div class="seite"><div class="seite-kopf"><div><h1>Diagnosen</h1><p>Konsens der Agenten über alle Patienten – für die vollständige Auswertung einen Patienten öffnen.</p></div></div>`;
+  if (!P.length) {
+    h += `<div class="karte">${leer('users', 'Noch keine Patienten', 'Legen Sie einen Patienten an und erfassen Sie die Beschwerden. Der erste Abgleich startet danach automatisch.', `<button class="knopf haupt" data-aktion="neu">${ic('plus')}Patient anlegen</button>`)}</div>`;
+  } else {
+    const kz = (label, wert, icon, k = '') => `<div class="kz ${k}"><div class="kz-icon">${ic(icon)}</div><div><b>${wert}</b><span>${label}</span></div></div>`;
+    h += `<div class="kennzahlen">${kz('Patienten', P.length, 'users')}${kz('Aktuelle Ergebnisse', n('aktuell'), 'check', 'ok')}${kz('Abgleiche laufen', n('laufend'), 'activity', 'ak')}${kz('Veraltete Ergebnisse', n('veraltet'), 'alert', 'wa')}</div>`;
+    h += `<div class="ueb">${P.map(p => `<div class="karte ueb-karte" data-oeffne="${p.id}" tabindex="0">
+      <div class="ueb-kopf">${avatar(p.name)}<div><b>${esc(p.name)}</b><small>${esc(personMeta(p) || '–')}</small></div></div>
+      ${p.diagnosen.length ? `<ol class="ueb-diag">${p.diagnosen.map((d, i) => `<li><span class="rang">${i + 1}</span><span class="ueb-dn" title="${esc(d.name)}">${esc(d.name)}</span>
+        <span class="ueb-st">${d.stimmen}/${d.agenten_gesamt}</span><span class="mini-balken"><i style="width:${100 * d.stimmen / d.agenten_gesamt}%"></i></span></li>`).join('')}</ol>`
+        : `<p class="ueb-leer">${p.zustand === 'laufend' ? 'Die Agenten recherchieren …' : p.zustand === 'leer' ? 'Noch keine klinischen Angaben' : 'Noch kein Ergebnis'}</p>`}
+      <div class="ueb-fuss">${ic('clock', 'mini')}<span>${p.abgeglichen ? 'Abgleich ' + zeit(p.abgeglichen) : 'Akte geändert ' + zeit(p.geaendert)}</span>${zustandPill(p.zustand)}</div></div>`).join('')}</div>`;
+  }
+  $('#ansicht-diagnosen').innerHTML = h + '</div>';
+}
+
+function diagnoseHtml({patient: p, lauf, ergebnis: e}) {
+  const laeuft = lauf?.status === 'laufend';
+  const pill = laeuft ? zustandPill('laufend') : e ? zustandPill(e.aktuell ? 'aktuell' : 'veraltet') : zustandPill(p.hat_daten ? 'ohne' : 'leer');
+  let h = `<div class="seite"><div class="kopf">${avatar(p.name, 'gross')}<div><h1>${esc(p.name)}</h1>
+    <div class="kopf-meta">${[personMeta(p), 'Akte geändert ' + zeit(p.geaendert)].filter(Boolean).map(esc).join('<span class="trenner">·</span>')}${pill}</div></div>
+    <div class="kopf-aktionen"><button class="knopf" data-aktion="akte">${ic('edit')}Patientenakte</button>
+    ${p.hat_daten ? `<button class="knopf haupt" data-aktion="abgleichen">${ic('refresh')}Neu abgleichen</button>` : ''}</div></div>`;
+
+  if (laeuft) h += fortschrittHtml(lauf);
+  else if (lauf && lauf.status !== 'fertig') {
+    const fehler = lauf.agenten.filter(a => a.fehler);
+    h += banner(lauf.status === 'fehler' ? 'kr' : 'wa', 'alert', `<b>Der letzte Abgleich ist ${lauf.status === 'fehler' ? 'fehlgeschlagen' : 'abgebrochen'}.</b> ${esc(lauf.meldung)}`
+      + (fehler.length ? `<ul>${fehler.map(a => `<li>A${a.nr} ${esc(a.modell)}: ${esc(a.fehler)}</li>`).join('')}</ul>` : ''),
+      p.hat_daten ? `<button class="knopf klein" data-aktion="abgleichen">${ic('refresh')}Erneut versuchen</button>` : '');
+  } else if (lauf?.meldung) h += banner('wa', 'alert', esc(lauf.meldung));
+  if (e && !e.aktuell && !laeuft) h += banner('wa', 'clock', 'Dieses Ergebnis beruht auf einem älteren Stand der Patientenakte.', `<button class="knopf klein" data-aktion="abgleichen">${ic('refresh')}Jetzt abgleichen</button>`);
+
+  if (!e) {
+    if (!laeuft) h += `<div class="karte">${p.hat_daten
+      ? leer('activity', 'Noch kein Abgleich', 'Starten Sie den Abgleich – die Agenten recherchieren dann unabhängig voneinander.', `<button class="knopf haupt" data-aktion="abgleichen">${ic('refresh')}Abgleich starten</button>`)
+      : leer('file', 'Noch keine klinischen Angaben', 'Erfassen Sie Beschwerden, Befunde und Vorgeschichte in der Patientenakte. Der Abgleich startet danach automatisch.', `<button class="knopf haupt" data-aktion="akte">${ic('edit')}Patientenakte öffnen</button>`)}</div>`;
+    return h + '</div>';
+  }
+  if (laeuft) h += `<p class="hinweis-zeile">${ic('info')}Darunter das letzte abgeschlossene Ergebnis – es wird ersetzt, sobald der neue Abgleich fertig ist.</p>`;
+  const reg = quellenRegister(e);
+  h += rahmenHtml(e);
+  h += `<div class="d-raster ${laeuft ? 'gedimmt' : ''}"><div class="stapel">${ergebnisHtml(e, reg, p.id)}</div>
+    <aside class="stapel">${rueckfragenHtml(e)}${quellenHtml(reg, e, p.id)}${agentenHtml(e, p.id)}</aside></div>`;
+  h += `<p class="disclaimer">${ic('info')}Entscheidungsunterstützung – ersetzt nicht die ärztliche Diagnose. Übereinstimmung mehrerer Modelle ist kein Beleg für Richtigkeit.</p>`;
+  return h + '</div>';
+}
+
+function schritteFuer(r) {
+  const s = [];
+  if (r?.buecher?.length || r?.internet) s.push('plant');
+  if (r?.buecher?.length) s.push('bibliothek');
+  if (r?.internet) s.push('internet');
+  return [...s, 'diagnose'];
+}
+function fortschrittHtml(l) {
+  const schritte = schritteFuer(l.rahmen);
+  let summe = 0;
+  const kacheln = l.agenten.map(a => {
+    let fertig = 0, jetzt = -1;
+    if (a.status === 'fertig') fertig = schritte.length;
+    else if (a.status === 'laufend') { jetzt = Math.max(0, schritte.indexOf(a.schritt)); fertig = jetzt; }
+    summe += ['fertig', 'fehler'].includes(a.status) ? 1 : (fertig + (jetzt >= 0 ? .5 : 0)) / schritte.length;
+    const text = a.status === 'laufend' ? SCHRITT[a.schritt] || a.schritt : a.status === 'fehler' ? a.fehler
+      : a.status === 'fertig' ? `fertig nach ${Math.round(a.dauer)} s` : 'wartet';
+    const zeichen = a.status === 'fertig' ? ic('check', 'ok') : a.status === 'fehler' ? ic('alert', 'kr') : a.status === 'laufend' ? '<span class="spinner klein"></span>' : '';
+    return `<div class="la ${a.status}"><div class="la-kopf">${ab(a.nr, a.modell)}<code title="${esc(a.modell)}">${esc(a.modell)}</code>${zeichen}</div>
+      <div class="schritte">${schritte.map((s, i) => `<i class="${i < fertig ? 'ok' : i === jetzt ? 'jetzt' : ''}" title="${SCHRITT[s]}"></i>`).join('')}</div>
+      <small title="${esc(text)}">${esc(text)}</small></div>`;
+  }).join('');
+  const fertig = l.agenten.filter(a => ['fertig', 'fehler'].includes(a.status)).length;
+  return `<div class="karte lauf"><div class="lauf-kopf"><span class="spinner"></span><div><b>Die Agenten recherchieren unabhängig voneinander</b>
+    <small>${fertig} von ${l.agenten.length} Agenten fertig · gestartet ${zeit(l.gestartet)}</small></div></div>
+    <div class="lauf-balken"><i style="width:${Math.round(100 * summe / Math.max(1, l.agenten.length))}%"></i></div>
+    <div class="lauf-agenten">${kacheln}</div></div>`;
+}
+
+const erfolgreiche = e => e.agenten.filter(a => a.status === 'fertig');
+
+function rahmenHtml(e) {
+  const r = e.rahmen, ok = erfolgreiche(e).length, b = r?.buecher || [];
+  const chip = (icon, html, an, titel = '') => `<span class="chip ${an ? 'an' : ''}" title="${esc(titel)}">${ic(icon)}${html}</span>`;
+  return `<div class="rahmen">
+    ${chip('bot', `<b>${ok}</b>&nbsp;von ${e.agenten.length} Agenten`, true, e.agenten.map(a => `A${a.nr}: ${a.modell}`).join('\n'))}
+    ${r ? chip('book', b.length ? `<b>${b.length}</b>&nbsp;${b.length === 1 ? 'Fachbuch' : 'Fachbücher'}` : 'ohne Fachbücher', b.length, b.join('\n')) : ''}
+    ${r ? chip('globe', r.internet ? 'mit PubMed-Recherche' : 'ohne Internetrecherche', r.internet) : ''}
+    ${chip('clock', `${zeit(e.beendet)} · ${dauer(e.gestartet, e.beendet)}`, false)}</div>`;
+}
+
+function quellenRegister(e) {
+  const agenten = Object.fromEntries(e.agenten.map(a => [a.nr, a]));
+  const liste = [], index = new Map();
+  const ref = (agentNr, lokal) => {
+    const q = (agenten[agentNr]?.quellen || []).find(q => q.nr === lokal);
+    if (!q) return null;
+    const k = q.art === 'web' ? 'w' + q.id : 'b' + (q.id ?? q.datei + q.seite);
+    if (!index.has(k)) { liste.push({nr: liste.length + 1, q, agenten: new Set(), diagnosen: new Set()}); index.set(k, liste.length); }
+    return index.get(k);
+  };
+  for (const g of e.konsens) for (const n of g.nennungen) for (const lokal of n.quellen) {
+    const nr = ref(n.agent, lokal);
+    if (nr) { liste[nr - 1].agenten.add(n.agent); liste[nr - 1].diagnosen.add(g.name); }
+  }
+  return {liste, ref};
+}
+const quellTitel = q => q.art === 'web' ? q.titel : q.datei + (q.seite ? ', S. ' + q.seite : '');
+
+function nennungenHtml(g, reg) {
+  return g.nennungen.map(n => {
+    const refs = n.quellen.map(q => reg.ref(n.agent, q)).filter(Boolean);
+    return `<div class="nennung">${ab(n.agent, n.modell)}<div>
+      <div class="nennung-kopf"><code>${esc(n.modell)}</code><span>Platz ${n.rang}</span>${n.name !== g.name ? `<span>als „${esc(n.name)}“</span>` : ''}${n.icd10 && n.icd10.toUpperCase() !== g.icd10 ? `<span class="mono">${esc(n.icd10)}</span>` : ''}</div>
+      <p>${esc(n.begruendung) || '<i>ohne Begründung</i>'}</p>
+      ${refs.length ? `<div class="refs">${refs.map(nr => `<a class="ref" data-ref="${nr}" title="${esc(quellTitel(reg.liste[nr - 1].q))}">[${nr}]</a>`).join('')}</div>` : ''}
+    </div></div>`;
+  }).join('');
+}
+const segmente = (e, genannt) => {
+  const ag = erfolgreiche(e);
+  return `<span class="segmente" style="--w:${ag.length > 6 ? 9 : 16}px">${ag.map(a => `<i class="${genannt.has(a.nr) ? 'ja' : ''}" style="--c:${farbe(a.nr)}" title="A${a.nr} ${esc(a.modell)}${genannt.has(a.nr) ? '' : ' – nicht genannt'}"></i>`).join('')}</span>`;
+};
+function ring(a, b) {
+  const r = 42, u = 2 * Math.PI * r, f = b ? a / b : 0;
+  return `<div class="ring"><svg viewBox="0 0 104 104"><circle cx="52" cy="52" r="${r}" fill="none" stroke="rgba(255,255,255,.18)" stroke-width="9"/>
+    <circle cx="52" cy="52" r="${r}" fill="none" stroke="#fff" stroke-width="9" stroke-linecap="round" stroke-dasharray="${(u * f).toFixed(1)} ${u.toFixed(1)}"/></svg>
+    <div class="ring-text"><b>${a}/${b}</b><small>Agenten</small></div></div>`;
+}
+
+function ergebnisHtml(e, reg, pid) {
+  const k = e.konsens;
+  if (!k.length) return `<div class="karte">${leer('activity', 'Keine Diagnosen', 'Die Agenten haben keine Diagnosen genannt.')}</div>`;
+  const einklappen = Z.einst?.einzelnennungen_einklappen && k[0].agenten_gesamt > 1;
+  const ab1 = k.findIndex(g => g.stimmen < 2);
+  const grenze = einklappen && ab1 !== -1 ? Math.max(1, ab1) : k.length;
+  const g = k[0], genannt = new Set(g.nennungen.map(n => n.agent));
+  const satz = g.stimmen === g.agenten_gesamt && g.agenten_gesamt > 1 ? `Übereinstimmend von allen ${g.agenten_gesamt} Agenten genannt` : `Von ${g.stimmen} der ${g.agenten_gesamt} Agenten genannt`;
+  let h = `<section class="hero"><div class="hero-oben"><div class="hero-text">
+      <div class="eyebrow">${ic('award', 'mini')}Führende Diagnose</div><h2>${esc(g.name)}</h2>
+      <div class="hero-meta">${g.icd10 ? `<span class="icd">${esc(g.icd10)}</span>` : ''}<span>${satz} · im Mittel Platz ${zahl(g.mittlerer_rang)}</span></div>
+      <div class="hero-punkte">${erfolgreiche(e).map(a => `<span class="hp ${genannt.has(a.nr) ? '' : 'nein'}" title="${genannt.has(a.nr) ? 'genannt' : 'nicht genannt'}">${ab(a.nr, a.modell)}${esc(kurz(a.modell))}</span>`).join('')}</div>
+    </div>${ring(g.stimmen, g.agenten_gesamt)}</div>
+    <div class="hero-unten"><div class="unter-titel">Begründungen der Agenten</div>${nennungenHtml(g, reg)}</div></section>`;
+
+  const dd = (g, rang) => {
+    const genannt = new Set(g.nennungen.map(n => n.agent));
+    const alias = [...new Set(g.nennungen.map(n => n.name).filter(n => n !== g.name))];
+    return `<details class="dd" data-key="${pid}-dd-${esc(g.name.toLowerCase())}"><summary><span class="rang">${rang}</span>
+      <span class="dd-name"><b>${esc(g.name)}</b>${g.icd10 ? `<span class="icd-klein">${esc(g.icd10)}</span>` : ''}${alias.length ? `<small>auch als: ${alias.map(esc).join(', ')}</small>` : ''}</span>
+      <span class="zust">${segmente(e, genannt)}<small>${g.stimmen}/${g.agenten_gesamt}</small></span>${ic('chevron', 'pfeil')}</summary>
+      <div class="dd-inhalt">${nennungenHtml(g, reg)}</div></details>`;
+  };
+  const weitere = k.slice(1, grenze), einzeln = k.slice(grenze);
+  if (weitere.length || einzeln.length) {
+    h += `<div class="karte"><div class="karte-kopf"><h3>${ic('list')}Differentialdiagnosen</h3><span class="rechts klein">nach Zustimmung, dann mittlerem Listenplatz</span></div><div class="dd-liste">`
+      + weitere.map((g, i) => dd(g, i + 2)).join('')
+      + (einzeln.length ? `<details class="einzeln" data-key="${pid}-einzeln"><summary>${ic('chevron', 'pfeil')}<span><b>${einzeln.length} ${einzeln.length === 1 ? 'Einzelnennung' : 'Einzelnennungen'}</b> – nur von einem Agenten genannt</span></summary>${einzeln.map((g, i) => dd(g, grenze + i + 1)).join('')}</details>` : '')
+      + '</div></div>';
+  }
+  const ag = erfolgreiche(e);
+  if (ag.length > 1) {
+    const zellen = g => ag.map(a => {
+      const n = g.nennungen.find(n => n.agent === a.nr);
+      if (!n) return '<td><span class="zelle ohne">–</span></td>';
+      const s = [100, 78, 60, 46, 36][Math.min(n.rang, 5) - 1];
+      return `<td><span class="zelle ${s < 60 ? 'hell' : ''}" style="--c:${farbe(a.nr)};--s:${s}%" title="${esc(a.modell)}: Platz ${n.rang}${n.name !== g.name ? ' als „' + esc(n.name) + '“' : ''}">${n.rang}</span></td>`;
+    }).join('');
+    h += `<div class="karte"><div class="karte-kopf"><h3>${ic('grid')}Übereinstimmungsmatrix</h3><span class="rechts klein">Zahl = Listenplatz beim jeweiligen Agenten</span></div>
+      <div class="matrix-wrap"><table class="matrix"><thead><tr><th>Diagnose</th>${ag.map(a => `<th>${ab(a.nr, a.modell)}<small title="${esc(a.modell)}">${esc(kurz(a.modell))}</small></th>`).join('')}<th>Zustimmung</th></tr></thead>
+      <tbody>${k.map((g, i) => `<tr><td><span class="m-rang">${i + 1}</span>${esc(g.name)}</td>${zellen(g)}<td><b>${g.stimmen}</b>/${g.agenten_gesamt}</td></tr>`).join('')}</tbody></table></div></div>`;
+  }
+  return h;
+}
+
+function rueckfragenHtml(e) {
+  if (!e.rahmen?.rueckfragen) return '';
+  const kopf = `<div class="karte-kopf"><h3>${ic('help')}Rückfragen der Agenten</h3>${e.rueckfragen.length ? `<span class="zahl">${e.rueckfragen.length}</span>` : ''}</div>`;
+  if (!e.rueckfragen.length) return `<div class="karte">${kopf}<div class="karte-inhalt"><p class="klein">Keine Rückfragen – den Agenten fehlten keine wesentlichen Angaben.</p></div></div>`;
+  return `<div class="karte">${kopf}<div class="karte-inhalt">
+    <p class="klein" style="margin-bottom:6px">Antworten werden in der Patientenakte unter „Ergänzungen“ gespeichert und lösen einen neuen Abgleich aus.</p>
+    ${e.rueckfragen.map(f => `<div class="frage"><div class="frage-kopf"><span>${esc(f.frage)}</span><span class="frage-von">${f.agenten.map(nr => ab(nr)).join('')}</span></div>
+      <textarea rows="1" data-frage="${esc(f.frage)}" placeholder="Antwort …" aria-label="Antwort">${esc(entwuerfe[Z.patient + '|' + f.frage] || '')}</textarea></div>`).join('')}
+    <button class="knopf haupt breit" data-aktion="antworten">${ic('send')}Antworten übernehmen und neu abgleichen</button></div></div>`;
+}
+
+function quellenHtml(reg, e, pid) {
+  let inhalt;
+  if (!reg.liste.length) {
+    const r = e.rahmen;
+    inhalt = `<p class="klein" style="padding:14px 0">${r && !r.buecher?.length && !r.internet
+      ? 'Weder Fachbücher noch Internetrecherche waren freigegeben – die Agenten stützten sich nur auf ihr Modellwissen.'
+      : 'Die Agenten haben keine der gefundenen Literaturstellen als Beleg angegeben.'}</p>`;
+  } else {
+    inhalt = reg.liste.map(({nr, q, agenten, diagnosen}) => `<div class="quelle" id="quelle-${nr}"><span class="q-nr">${nr}</span><div>
+      <div class="q-titel">${q.art === 'web' ? `<a href="${esc(q.url)}" target="_blank" rel="noopener noreferrer">${esc(q.titel)}${ic('extern', 'mini')}</a>` : esc(q.datei)}</div>
+      <div class="q-meta">${ic(q.art === 'web' ? 'globe' : 'book', 'mini')}${esc(q.art === 'web' ? 'PubMed · ' + q.fundstelle : q.seite ? 'Fachbuch · Seite ' + q.seite : 'Fachbuch')}<span>·</span>${[...agenten].sort((a, b) => a - b).map(n => ab(n)).join('')}</div>
+      <div class="q-diag">Beleg für ${[...diagnosen].map(esc).join(', ')}</div>
+      <details class="auszug-d" data-key="${pid}-q-${nr}"><summary>${ic('chevron', 'pfeil mini')}Auszug</summary><div class="auszug">${esc(q.text)}</div></details></div></div>`).join('');
+  }
+  return `<div class="karte"><div class="karte-kopf"><h3>${ic('book')}Zitierte Literatur</h3>${reg.liste.length ? `<span class="zahl">${reg.liste.length}</span>` : ''}</div><div class="karte-inhalt dicht">${inhalt}</div></div>`;
+}
+
+function agentenHtml(e, pid) {
+  return `<div class="karte"><div class="karte-kopf"><h3>${ic('bot')}Agenten im Einzelnen</h3><span class="rechts klein">${erfolgreiche(e).length}/${e.agenten.length} erfolgreich</span></div>
+    <div class="karte-inhalt dicht">${e.agenten.map(a => `<details class="agent" data-key="${pid}-ag-${a.nr}"><summary>${ab(a.nr, a.modell)}<code title="${esc(a.modell)}">${esc(a.modell)}</code>${statusPill(a.status)}<small>${a.dauer ? Math.round(a.dauer) + ' s' : ''}</small>${ic('chevron', 'pfeil')}</summary>
+      <div class="agent-inhalt">
+        ${a.fehler ? `<div class="fehlertext">${esc(a.fehler)}</div>` : ''}
+        ${a.hinweise.map(t => `<div class="hinweistext">${ic('alert', 'mini')}<span>${esc(t)}</span></div>`).join('')}
+        ${a.diagnosen.length ? `<div class="ag-titel">Eigene Rangliste</div><ol>${a.diagnosen.map(d => `<li>${esc(d.name)} <span class="mono">${esc(d.icd10)}</span></li>`).join('')}</ol>` : ''}
+        ${a.suchanfragen.length ? `<div class="ag-titel">Suchanfragen</div><div>${a.suchanfragen.map(s => `<span class="such">${ic(s.art === 'web' ? 'globe' : 'book', 'mini')}${esc(s.text)}</span>`).join('')}</div>`
+          : a.status === 'fertig' ? '<div class="klein">Ohne Recherche – keine Fachbücher und kein Internet freigegeben.</div>' : ''}
+        ${a.quellen.length ? `<div class="klein" style="margin-top:6px">${a.quellen.length} Literaturstellen gefunden, ${new Set(a.diagnosen.flatMap(d => d.quellen)).size} davon zitiert</div>` : ''}
+        ${a.rueckfragen.length ? `<div class="ag-titel">Rückfragen</div><ul style="margin-left:18px">${a.rueckfragen.map(f => `<li>${esc(f)}</li>`).join('')}</ul>` : ''}
+      </div></details>`).join('')}</div></div>`;
+}
+
+$('#ansicht-diagnosen').addEventListener('click', sicher(async ev => {
+  const t = ev.target.closest('[data-aktion],[data-oeffne],[data-ref]');
+  if (!t) return;
+  if (t.dataset.oeffne) return zeige('diagnosen', +t.dataset.oeffne);
+  if (t.dataset.ref) {
+    const q = $('#quelle-' + t.dataset.ref);
+    if (q) { q.scrollIntoView({block: 'center', behavior: 'smooth'}); q.classList.remove('blink'); void q.offsetWidth; q.classList.add('blink'); }
+    return;
+  }
+  const a = t.dataset.aktion;
+  if (a === 'neu') return zeige('patienten', 'neu');
+  if (a === 'akte') return zeige('patienten');
+  if (a === 'abgleichen') {
+    t.disabled = true;
+    await api(`/api/patienten/${Z.patient}/abgleich`, 'POST');
+    toast('Neuer Abgleich gestartet');
+    await Promise.all([diagnoseLaden(), listeLaden()]);
+  }
+  if (a === 'antworten') {
+    const antworten = $$('#ansicht-diagnosen textarea[data-frage]').map(f => ({frage: f.dataset.frage, antwort: f.value.trim()})).filter(x => x.antwort);
+    if (!antworten.length) return toast('Bitte mindestens eine Rückfrage beantworten.');
+    t.disabled = true;
+    await api(`/api/patienten/${Z.patient}/antworten`, 'POST', {antworten});
+    antworten.forEach(x => delete entwuerfe[Z.patient + '|' + x.frage]);
+    toast('Antworten in der Akte ergänzt – neuer Abgleich läuft');
+    document.activeElement?.blur();
+    await Promise.all([diagnoseLaden(), listeLaden()]);
+  }
+}));
+$('#ansicht-diagnosen').addEventListener('input', e => { if (e.target.dataset.frage !== undefined) entwuerfe[Z.patient + '|' + e.target.dataset.frage] = e.target.value; });
+$('#ansicht-diagnosen').addEventListener('keydown', e => { if (e.key === 'Enter' && e.target.dataset.oeffne) zeige('diagnosen', +e.target.dataset.oeffne); });
+
+// ── Patientenakte ───────────────────────────────────────────────────────────
+const FELDER = ['name', 'geburtsdatum', 'geschlecht', 'anamnese', 'befunde', 'vorerkrankungen', 'medikation', 'allergien', 'familienanamnese', 'sozialanamnese', 'ergaenzungen'];
+let akteUrsprung = null, akteDaten = null;
+const formWerte = () => Object.fromEntries(FELDER.map(f => [f, $('#f-' + f).value]));
+const formGeaendert = () => akteUrsprung !== null && Z.ansicht === 'patienten' && JSON.stringify(formWerte()) !== akteUrsprung;
+
+async function akteLaden() {
+  const id = Z.patient;
+  if (!id) {
+    akteUrsprung = akteDaten = null;
+    $('#akte').hidden = true; $('#akte-leer').hidden = false;
+    $('#akte-leer').innerHTML = `<div class="karte">${leer('users', 'Keine Akte geöffnet', 'Wählen Sie links einen Patienten oder legen Sie einen neuen an.', `<button class="knopf haupt" type="button" id="akte-neu">${ic('plus')}Neuer Patient</button>`)}</div>`;
+    $('#akte-neu').onclick = () => zeige('patienten', 'neu');
+    return;
+  }
+  const p = id === 'neu' ? null : await api('/api/patienten/' + id);
+  if (id !== Z.patient) return;
+  akteFuellen(p);
+  if (!p) $('#f-name').focus();
+}
+function akteFuellen(p) {
+  akteDaten = p;
+  FELDER.forEach(f => $('#f-' + f).value = p ? p[f] : '');
+  akteUrsprung = JSON.stringify(formWerte());
+  $('#akte-leer').hidden = true; $('#akte').hidden = false;
+  $('#akte-gefahr').hidden = !p;
+  akteKopf(); akteZustand();
+}
+function akteKopf() {
+  const p = akteDaten, name = $('#f-name').value.trim();
+  const eintrag = p && Z.patienten.find(x => x.id === p.id);
+  const meta = p ? [personMeta(eintrag || {}), 'zuletzt geändert ' + zeit(p.geaendert)].filter(Boolean).map(esc).join('<span class="trenner">·</span>') : 'Pflichtangabe ist nur der Name.';
+  $('#akte-kopf').innerHTML = `${avatar(name || '?', 'gross')}<div><h1>${esc(name || 'Neuer Patient')}</h1><div class="kopf-meta">${meta}${eintrag ? zustandPill(eintrag.zustand) : ''}</div></div>
+    ${p ? `<div class="kopf-aktionen"><button type="button" class="knopf" data-aktion="zur-diagnose">${ic('activity')}Zur Diagnose</button></div>` : ''}`;
+}
+function akteZustand() {
+  const g = formGeaendert(), auto = Z.einst?.auto_abgleich;
+  const z = $('#akte-zustand');
+  z.className = 'zustand' + (g ? ' offen' : '');
+  z.innerHTML = g ? `${ic('dot')}Ungespeicherte Änderungen${auto ? ' – Speichern startet einen neuen Abgleich' : ''}` : `${ic('check')}${akteDaten ? 'Alle Änderungen gespeichert' : 'Neue Akte'}`;
+  $('#akte-verwerfen').hidden = !g;
+}
+$('#akte').addEventListener('input', e => { akteZustand(); if (e.target.id === 'f-name') akteKopf(); });
+$('#akte-kopf').addEventListener('click', e => { if (e.target.closest('[data-aktion="zur-diagnose"]')) zeige('diagnosen'); });
+$('#akte-verwerfen').onclick = () => akteFuellen(akteDaten);
+$('#akte').addEventListener('submit', sicher(async ev => {
+  ev.preventDefault();
+  const neu = Z.patient === 'neu';
+  const r = await api(neu ? '/api/patienten' : '/api/patienten/' + Z.patient, neu ? 'POST' : 'PUT', formWerte());
+  Z.patient = r.patient.id;
+  history.replaceState(null, '', '#patienten/' + Z.patient);
+  akteFuellen(r.patient);
+  await listeLaden();
+  toast(r.abgleich_gestartet ? 'Gespeichert – die Agenten recherchieren' : 'Gespeichert', {text: 'Zur Diagnose', fn: () => zeige('diagnosen')});
+}));
+$('#akte-loeschen').onclick = sicher(async () => {
+  if (!confirm(`„${akteDaten.name}“ mit allen Abgleichen endgültig löschen?`)) return;
+  await api('/api/patienten/' + akteDaten.id, 'DELETE');
+  akteUrsprung = null;
+  await listeLaden();
+  zeige('patienten', null);
+  toast('Patient gelöscht');
+});
+document.addEventListener('keydown', e => {
+  if ((e.ctrlKey || e.metaKey) && e.key === 's' && Z.ansicht === 'patienten' && !$('#akte').hidden) { e.preventDefault(); $('#akte').requestSubmit(); }
+});
+
+// ── Einstellungen (gemeinsam für Adminbereich und Technik) ──────────────────
+async function einstLaden() {
+  const r = await api('/api/einstellungen');
+  Z.einst = r.einstellungen; Z.modelle = r.modelle; Z.ollamaFehler = r.ollama_fehler;
+  systemZeigen();
+}
+async function einstAendern(werte) {
+  const r = await api('/api/einstellungen', 'PATCH', werte);
+  Z.einst = r.einstellungen;
+  systemZeigen();
+  return r;
+}
+function systemZeigen() {
+  const e = Z.einst;
+  if (!e) return;
+  $('#system').innerHTML = `<b><span class="zp ${Z.ollamaFehler ? 'z-fehler' : 'z-aktuell'}"></span>${Z.ollamaFehler ? 'Ollama nicht erreichbar' : 'Ollama verbunden'}</b>
+    ${e.agenten.length} ${e.agenten.length === 1 ? 'Agent' : 'Agenten'} · ${e.internet ? 'mit' : 'ohne'} Internet`;
+}
+
+// ── Adminbereich ────────────────────────────────────────────────────────────
+let gespeichertZeit, bibTimer;
+async function adminLaden() { await einstLaden(); adminZeigen(); await bibLaden(); }
+function adminZeigen() {
+  $$('#ansicht-admin [data-einst]').forEach(i => i.checked = !!Z.einst[i.dataset.einst]);
+  $$('#a-max button').forEach(b => b.classList.toggle('an', +b.dataset.wert === Z.einst.max_diagnosen));
+}
+async function adminSpeichern(werte) {
+  let ok = true;
+  try { await einstAendern(werte); } catch (e) { ok = false; toast(e.message, null, true); }
+  adminZeigen(); bibZeigen();
+  if (!ok) return;
+  $('#a-gespeichert').classList.add('an');
+  clearTimeout(gespeichertZeit);
+  gespeichertZeit = setTimeout(() => $('#a-gespeichert').classList.remove('an'), 1800);
+}
+async function bibLaden() {
+  clearTimeout(bibTimer);
+  Z.bib = await api('/api/bibliothek');
+  bibZeigen();
+  if (Z.bib.status.laeuft && Z.ansicht === 'admin') bibTimer = setTimeout(sicher(bibLaden), 1200);
+}
+function bibZeigen() {
+  const b = Z.bib;
+  if (!b || !Z.einst) return;
+  const aus = new Set(Z.einst.deaktivierte_buecher), s = b.status;
+  const aktiv = b.dateien.filter(d => !aus.has(d.name)).length;
+  $('#b-ordner').textContent = b.ordner;
+  $('#b-zusammenfassung').textContent = b.dateien.length ? `${aktiv} von ${b.dateien.length} berücksichtigt` : '';
+  $('#b-status').innerHTML =
+    (!b.embedding_modell ? banner('wa', 'alert', 'Kein Embedding-Modell gewählt – Fachbücher werden erst nach Auswahl unter „Technik“ indexiert.') : '')
+    + (s.laeuft ? `<div class="index-lauf"><span class="spinner klein"></span><span>Indexiere ${esc(s.datei || '…')}</span><span class="klein">${s.fertig} / ${s.gesamt}</span>
+        <div class="mini-balken"><i style="width:${s.gesamt ? 100 * s.fertig / s.gesamt : 0}%"></i></div></div>` : '')
+    + s.fehler.filter(f => !b.dateien.some(d => f.startsWith(d.name + ': '))).map(f => banner('kr', 'alert', esc(f))).join('');
+  $('#b-liste').innerHTML = b.dateien.map(d => {
+    const an = !aus.has(d.name);
+    const st = d.fehler ? '<span class="pill kr">Fehler</span>'
+      : s.laeuft && s.datei === d.name ? '<span class="pill ak">wird indexiert</span>'
+      : d.indexiert ? `<span class="pill ok">${ic('check')}indexiert</span>` : '<span class="pill">ausstehend</span>';
+    return `<div class="buch ${an ? '' : 'aus'}"><div class="buch-icon">${ic('book')}</div>
+      <div class="buch-text"><b title="${esc(d.name)}">${esc(d.name.replace(/\.(pdf|txt|md)$/i, ''))}</b>
+        <small>${esc(d.name.split('.').pop().toUpperCase())} · ${groesse(d.groesse)}${d.abschnitte ? ` · ${d.abschnitte} Abschnitte` : ''} ${st}${an ? '' : ' <span>nicht berücksichtigt</span>'}</small>
+        ${d.fehler ? `<small style="color:var(--kr)">${esc(d.fehler)}</small>` : ''}</div>
+      <label class="schalter" title="${an ? 'Wird berücksichtigt' : 'Wird nicht berücksichtigt'}"><input type="checkbox" data-buch="${esc(d.name)}" ${an ? 'checked' : ''} aria-label="${esc(d.name)} berücksichtigen"><span></span></label>
+      <button type="button" class="icon-knopf gefahr" data-entfernen="${esc(d.name)}" title="Aus der Bibliothek entfernen" aria-label="${esc(d.name)} entfernen">${ic('trash')}</button></div>`;
+  }).join('') || '<p class="klein leer-zeile">Noch keine Fachbücher. Ohne Literatur stützen sich die Agenten nur auf ihr Modellwissen.</p>';
+}
+async function hochladen(dateien) {
+  const ok = dateien.filter(d => /\.(pdf|txt|md)$/i.test(d.name));
+  if (!ok.length) return toast('Erlaubt sind PDF-, TXT- und MD-Dateien.', null, true);
+  for (const d of ok) await api('/api/bibliothek/datei?name=' + encodeURIComponent(d.name), 'POST', d);
+  toast(ok.length === 1 ? `„${ok[0].name}“ hinzugefügt – wird indexiert` : `${ok.length} Fachbücher hinzugefügt – werden indexiert`);
+  await bibLaden();
+}
+$('#ansicht-admin').addEventListener('change', sicher(async e => {
+  const t = e.target;
+  if (t.dataset.einst) return adminSpeichern({[t.dataset.einst]: t.checked});
+  if (t.dataset.buch !== undefined) {
+    const aus = new Set(Z.einst.deaktivierte_buecher);
+    t.checked ? aus.delete(t.dataset.buch) : aus.add(t.dataset.buch);
+    return adminSpeichern({deaktivierte_buecher: [...aus]});
+  }
+  if (t.id === 'b-datei') { await hochladen([...t.files]); t.value = ''; }
+}));
+$('#ansicht-admin').addEventListener('click', sicher(async e => {
+  const seg = e.target.closest('#a-max button');
+  if (seg) return adminSpeichern({max_diagnosen: +seg.dataset.wert});
+  const weg = e.target.closest('[data-entfernen]');
+  if (weg && confirm(`„${weg.dataset.entfernen}“ aus der Fachbibliothek entfernen?`)) {
+    await api('/api/bibliothek/datei?name=' + encodeURIComponent(weg.dataset.entfernen), 'DELETE');
+    await einstLaden(); await bibLaden();
+  }
+  if (e.target.closest('#b-index')) { await api('/api/bibliothek/indexieren', 'POST'); await bibLaden(); }
+}));
+const ablage = $('#b-ablage');
+['dragenter', 'dragover'].forEach(t => ablage.addEventListener(t, e => { e.preventDefault(); ablage.classList.add('drueber'); }));
+['dragleave', 'drop'].forEach(t => ablage.addEventListener(t, e => { e.preventDefault(); ablage.classList.remove('drueber'); }));
+ablage.addEventListener('drop', sicher(e => hochladen([...e.dataTransfer.files])));
+
+// ── Technik ─────────────────────────────────────────────────────────────────
+let tAuswahl = [];
+async function technikLaden() {
+  await einstLaden();
+  const e = Z.einst;
+  $('#t-url').value = e.ollama_url;
+  $('#t-parallel').value = e.parallel;
+  $('#t-topk').value = e.top_k;
+  $('#t-icd').checked = e.icd_abgleich;
+  $('#t-denken').checked = e.denken;
+  $('#t-embedding').innerHTML = modellOptionen(e.embedding_modell, true);
+  $('#t-verbindung').innerHTML = Z.ollamaFehler ? `<span class="pill kr" title="${esc(Z.ollamaFehler)}">nicht erreichbar</span>` : `<span class="pill ok">${ic('check')}verbunden · ${Z.modelle.length} Modelle</span>`;
+  tAuswahl = e.agenten.length ? [...e.agenten] : [''];
+  agentenZeigen();
+  tZustand(false);
+}
+function modellOptionen(auswahl, embedding) {
+  const liste = Z.modelle.filter(m => m.embedding === embedding);
+  const opt = m => `<option value="${esc(m.name)}" ${m.name === auswahl ? 'selected' : ''}>${esc(m.name)}${m.groesse ? ' · ' + groesse(m.groesse) : ''}</option>`;
+  let h = '<option value="">– Modell wählen –</option>';
+  if (auswahl && !liste.some(m => m.name === auswahl)) h += `<option value="${esc(auswahl)}" selected>${esc(auswahl)} (nicht installiert)</option>`;
+  const lokal = liste.filter(m => !m.cloud), cloud = liste.filter(m => m.cloud);
+  if (lokal.length) h += `<optgroup label="Lokal">${lokal.map(opt).join('')}</optgroup>`;
+  if (cloud.length) h += `<optgroup label="Cloud – Daten verlassen den Rechner">${cloud.map(opt).join('')}</optgroup>`;
+  return h;
+}
+function agentenZeigen() {
+  $('#t-anzahl').textContent = tAuswahl.length;
+  $('#t-agenten').innerHTML = tAuswahl.map((m, i) => {
+    const info = Z.modelle.find(x => x.name === m);
+    const tag = info ? (info.cloud ? '<span class="pill wa">Cloud</span>' : '<span class="pill ok">lokal</span>') : m ? '<span class="pill kr">fehlt</span>' : '<span class="pill">–</span>';
+    return `<div class="agentzeile">${ab(i + 1)}<select data-i="${i}" aria-label="Sprachmodell für Agent ${i + 1}">${modellOptionen(m, false)}</select>${tag}</div>`;
+  }).join('');
+  const doppelt = tAuswahl.filter((m, i) => m && tAuswahl.indexOf(m) !== i);
+  const cloud = tAuswahl.filter(m => Z.modelle.find(x => x.name === m)?.cloud);
+  $('#t-hinweise').innerHTML =
+    (doppelt.length ? banner('kr', 'alert', `<b>${esc(doppelt[0])}</b> ist mehreren Agenten zugewiesen. Jedes Modell darf nur einmal vorkommen – sonst stimmt es sich selbst zu.`) : '')
+    + (cloud.length ? banner('wa', 'globe', `Cloud-Modelle (${cloud.map(esc).join(', ')}) übertragen Anamnese und Befunde an einen externen Dienst. Für echte Patientendaten nur lokale Modelle verwenden.`) : '');
+}
+function tZustand(g) {
+  $('#t-zustand').className = 'zustand' + (g ? ' offen' : '');
+  $('#t-zustand').innerHTML = g ? `${ic('dot')}Ungespeicherte Änderungen – gelten ab dem nächsten Abgleich` : `${ic('check')}Gespeichert`;
+}
+$('#t-agenten').addEventListener('change', e => { tAuswahl[+e.target.dataset.i] = e.target.value; agentenZeigen(); tZustand(true); });
+$('#t-form').addEventListener('input', e => { if (!e.target.closest('#t-agenten')) tZustand(true); });
+$('#t-form').addEventListener('click', e => {
+  const b = e.target.closest('[data-schritt]');
+  if (!b) return;
+  if (+b.dataset.schritt > 0 && tAuswahl.length < 12) {
+    const frei = Z.modelle.find(m => !m.embedding && !m.cloud && !tAuswahl.includes(m.name));
+    tAuswahl.push(frei ? frei.name : '');
+  } else if (+b.dataset.schritt < 0 && tAuswahl.length > 1) tAuswahl.pop();
+  agentenZeigen(); tZustand(true);
+});
+$('#t-form').addEventListener('submit', sicher(async ev => {
+  ev.preventDefault();
+  await einstAendern({
+    ollama_url: $('#t-url').value.trim(), agenten: tAuswahl, embedding_modell: $('#t-embedding').value,
+    top_k: +$('#t-topk').value, parallel: +$('#t-parallel').value, icd_abgleich: $('#t-icd').checked, denken: $('#t-denken').checked,
+  });
+  toast('Technische Einstellungen gespeichert');
+  await technikLaden();
+}));
+
+// ── Start ───────────────────────────────────────────────────────────────────
+(async () => {
+  try { await Promise.all([listeLaden(), einstLaden()]); } catch (e) { toast(e.message, null, true); }
+  const [ansicht, id] = location.hash.slice(1).split('/');
+  const pid = id === 'neu' ? 'neu' : Z.patienten.some(p => p.id === +id) ? +id : null;
+  zeige(['diagnosen', 'patienten', 'admin', 'technik'].includes(ansicht) ? ansicht : 'diagnosen', pid);
+})();
+</script>
+</body>
+</html>
