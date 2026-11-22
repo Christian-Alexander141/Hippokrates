@@ -6,6 +6,16 @@
 
 > **Hinweis:** Hippokrates dient ausschließlich der Entscheidungsunterstützung für medizinisches Fachpersonal. Es ersetzt weder die ärztliche Diagnose noch die Behandlungsentscheidung. Dass mehrere Modelle übereinstimmen, ist kein Beleg dafür, dass sie richtig liegen.
 
+## Schnellstart
+
+```bash
+git clone https://github.com/Christian-Alexander141/Hippokrates.git
+cd Hippokrates
+./installieren.sh
+```
+
+Ein Befehl richtet alles in Docker ein und startet Hippokrates unter <http://127.0.0.1:8000>. Die Sprachmodelle laufen weiter auf dem eigenen Rechner (z. B. [Ollama](https://ollama.com)); fehlen welche, bietet das Skript den Download an. Details unter [Installation](#installation).
+
 ---
 
 ## Die Idee
@@ -160,10 +170,40 @@ Patientenakte ──(Änderung gespeichert)──▶ Abgleich startet ──▶ 
 
 ## Installation
 
+### Mit Docker (empfohlen)
+
 Voraussetzungen:
 
-- Python 3.12 oder neuer und Node.js 20 oder neuer (für den Bau der Oberfläche)
-- ein lokaler Modellserver mit mindestens zwei verschiedenen Chat-Modellen und einem Embedding-Modell, zum Beispiel mit [Ollama](https://ollama.com):
+- [Docker Engine](https://docs.docker.com/engine/install/) mit Compose-Plugin (ab 2.24) oder [Docker Desktop](https://docs.docker.com/desktop/)
+- ein lokaler Modellserver auf dem Rechner selbst, z. B. [Ollama](https://ollama.com) – Hippokrates braucht mindestens zwei verschiedene Chat-Modelle und ein Embedding-Modell
+
+```bash
+./installieren.sh
+```
+
+Das Skript erledigt in dieser Reihenfolge:
+
+1. Es prüft Docker und Docker Compose und startet Docker bei Bedarf nach Rückfrage.
+2. Es wählt die passende Netzvariante: unter Linux mit Docker Engine das Host-Netz (Ollama braucht dann keine Umkonfiguration), mit Docker Desktop das Bridge-Netz.
+3. Es prüft Ollama und die Modelle auf dem Host; fehlen welche, bietet es `mistral:7b`, `qwen3.5:9b` und `granite-embedding:278m` zum Download an.
+4. Es legt `daten/` und `netze/` mit den richtigen Rechten an, wählt einen freien Port und schreibt eine `.env`.
+5. Es baut das Image, startet den Container und prüft, ob der Container die Modelle des Hosts erreicht.
+
+Erneut ausführen heißt aktualisieren. Die Daten in `daten/` bleiben dabei erhalten und sind dieselben wie ohne Docker.
+
+| Befehl | Wirkung |
+|---|---|
+| `./installieren.sh --pruefen` | nur prüfen und berichten, nichts verändern |
+| `./installieren.sh --ja` | ohne Rückfragen installieren |
+| `./installieren.sh --hilfe` | alle Optionen (Port, Netzvariante, Zusatzpakete für eigene Netze …) |
+| `docker compose logs -f` | Protokoll ansehen |
+| `docker compose down` | anhalten |
+
+Einzelheiten, Umgebungsvariablen und manuelle Einrichtung: [docs/docker.md](docs/docker.md)
+
+### Ohne Docker
+
+Voraussetzungen: Python 3.12 oder neuer, Node.js 20 oder neuer (für den Bau der Oberfläche) und ein lokaler Modellserver mit Modellen, zum Beispiel:
 
 ```bash
 ollama pull mistral:7b
@@ -174,35 +214,29 @@ ollama pull granite-embedding:278m
 Installieren und starten (Abhängigkeiten stehen in `pyproject.toml`):
 
 ```bash
-git clone https://github.com/Christian-Alexander141/Hippokrates.git
-cd Hippokrates
 python3 -m venv .venv
 .venv/bin/pip install -e pakete/netzwerkzeug -e .     # oder: uv sync
 (cd frontend && npm install && npm run build)
 .venv/bin/python src/main.py
 ```
 
-Die Anwendung läuft dann unter <http://127.0.0.1:8000>. Beim ersten Start werden die drei größten lokalen Chat-Modelle als Agenten und das erste Embedding-Modell vorbelegt. Frameworks für eigene Netze kommen als Extras hinzu, z. B. `pip install -e ".[torch]"` oder `".[onnx]"`.
+Die Anwendung läuft dann unter <http://127.0.0.1:8000>. Frameworks für eigene Netze kommen als Extras hinzu, z. B. `pip install -e ".[torch]"` oder `".[onnx]"`.
 
-**Mit Docker – ein Befehl** (die Sprachmodelle stellt weiterhin der Host bereit):
+### Erste Schritte
 
-```bash
-./installieren.sh
-```
+Beim ersten Start werden die drei größten lokalen Chat-Modelle als Agenten und das erste Embedding-Modell vorbelegt.
 
-Das Skript prüft Docker und Docker Compose und startet Docker bei Bedarf nach Rückfrage. Es wählt die passende Netzvariante (Linux: Host-Netz, Docker Desktop: Bridge) und prüft Ollama und die Modelle auf dem Host; fehlen welche, bietet es den Download an. Es legt `daten/` und `netze/` mit den richtigen Rechten an und wählt einen freien Port. Dann baut es das Image, startet den Container und kontrolliert, ob der Container die Modelle des Hosts erreicht. Erneut ausführen heißt aktualisieren. `./installieren.sh --pruefen` berichtet nur, `--hilfe` zeigt alle Optionen. Einzelheiten und manuelle Einrichtung: [docs/docker.md](docs/docker.md)
-
-**Erste Schritte**
-
-1. Unter **Modelle & Technik** die Agenten wählen – oder „Alle lokalen Modelle“.
+1. Unter **Modelle & Technik** die Agenten prüfen – oder „Alle lokalen Modelle“ wählen.
 2. Im **Adminbereich** Fachbücher hochladen (PDF mit Textebene, TXT oder MD) und bei Bedarf eigene Netze freischalten.
 3. Einen Patienten anlegen und speichern. Der erste Abgleich startet automatisch.
 
+**Hardware:** Mit `Gleichzeitig laufende Agenten = 1` arbeiten die Agenten nacheinander, sodass jeweils nur ein Modell im Grafikspeicher liegt. Auf einer Grafikkarte mit 11 GB dauert ein Abgleich mit drei Modellen zwischen 3 und 10 Milliarden Parametern zwei bis drei Minuten.
+
+### Entwicklung und Tests
+
 Den Speicherort der Daten legt die Umgebungsvariable `HIPPOKRATES_DATEN` fest (Standard: `daten/` im Projektordner), den Ordner der eigenen Netze `HIPPOKRATES_NETZE` (Standard: `netze/`).
 
-**Entwicklung der Oberfläche:** `python src/main.py` starten und in `frontend/` `npm run dev` ausführen – die Oberfläche läuft dann mit Hot Reload unter <http://localhost:5173> und leitet `/api` an den Server weiter.
-
-**Hardware:** Mit `Gleichzeitig laufende Agenten = 1` arbeiten die Agenten nacheinander, sodass jeweils nur ein Modell im Grafikspeicher liegt. Auf einer Grafikkarte mit 11 GB dauert ein Abgleich mit drei Modellen zwischen 3 und 10 Milliarden Parametern zwei bis drei Minuten.
+**Oberfläche mit Hot Reload:** `python src/main.py` starten und in `frontend/` `npm run dev` ausführen – die Oberfläche läuft dann unter <http://localhost:5173> und leitet `/api` an den Server weiter.
 
 **Tests:**
 
@@ -256,6 +290,7 @@ Hippokrates/
 ├── docs/                        # eigene-netze.md, docker.md, Screenshots (Demo-Daten)
 ├── installieren.sh              # Installation und Aktualisierung in Docker (ein Befehl)
 ├── Dockerfile, docker-compose.yml, docker-compose.hostnetz.yml
+├── .env                         # von installieren.sh erzeugt (nicht im Repository)
 └── daten/                       # Laufzeitdaten (nicht im Repository)
 ```
 
@@ -271,7 +306,7 @@ Hippokrates/
 | Alle lokal verfügbaren Modelle (Ollama, LM Studio, llama.cpp …), bei jedem Aufruf neu ermittelt | ✅ umgesetzt |
 | Eigene neuronale Netze (Bibliothek `netzwerkzeug`, LangChain `create_agent`) | ✅ umgesetzt |
 | React-Oberfläche mit Anbieter-Logos, Schnellsuche und Dunkelmodus | ✅ umgesetzt |
-| Betrieb in Docker mit Modellen vom Host | ✅ vorbereitet |
+| Betrieb in Docker mit Modellen vom Host, Installation mit einem Befehl (`installieren.sh`) | ✅ umgesetzt |
 | Lokale Fachbibliothek (RAG) mit Auswahl der Bücher | ✅ umgesetzt |
 | Optionale PubMed-Recherche | ✅ umgesetzt |
 | Rückfragen der Agenten mit Antworten in der Akte | ✅ umgesetzt |
