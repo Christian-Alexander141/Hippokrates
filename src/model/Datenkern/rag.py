@@ -9,7 +9,7 @@ from pathlib import Path
 
 import numpy as np
 
-from . import db, ollama
+from . import db, sprachmodelle
 
 ERLAUBTE_ENDUNGEN = {".pdf", ".txt", ".md"}
 
@@ -104,7 +104,7 @@ def _indexieren() -> None:
                     stuecke = [(seite, s) for seite, text in _seiten(pfad) for s in _abschnitte(text)]
                     if not stuecke:
                         raise ValueError("kein Text extrahierbar (gescanntes PDF ohne Textebene?)")
-                    vektoren = _normiert(ollama.embed(einst["ollama_url"], modell, [s for _, s in stuecke]))
+                    vektoren = _normiert(sprachmodelle.embed(einst, modell, [s for _, s in stuecke]))
                     with db.verbinden() as con:
                         con.execute("DELETE FROM bib_dateien WHERE name=?", (pfad.name,))
                         datei_id = con.execute(
@@ -166,7 +166,7 @@ def suche(anfrage: str, k: int, einst: dict) -> list[dict]:
     erlaubt = np.array([n not in aus for n in namen], dtype=bool)
     if not erlaubt.any():
         return []
-    q = _normiert(ollama.embed(einst["ollama_url"], modell, [anfrage]))[0]
+    q = _normiert(sprachmodelle.embed(einst, modell, [anfrage]))[0]
     werte = np.where(erlaubt, matrix @ q, -np.inf)
     # stabile Sortierung: bei gleicher Ähnlichkeit entscheidet die Abschnitts-ID
     beste = [i for i in np.lexsort((ids, -werte))[:k] if erlaubt[i]]

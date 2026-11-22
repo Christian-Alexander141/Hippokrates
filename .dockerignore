@@ -1,0 +1,27 @@
+# Nicht ins Image: Laufzeitdaten, Abhängigkeiten, Builds, Versionsverwaltung
+.git
+.gitignore
+.venv
+venv
+env
+daten
+**/__pycache__
+**/*.pyc
+**/*.egg-info
+frontend/node_modules
+frontend/dist
+frontend/*.tsbuildinfo
+pakete/*/build
+docs
+tests
+pakete/*/tests
+src/Docs
+src/model/Adminbereich/Docs
+src/model/Adminbereich/TEST
+.vscode
+.idea
+Dockerfile
+docker-compose*.yml
+.env
+.env.vorher
+installieren.sh

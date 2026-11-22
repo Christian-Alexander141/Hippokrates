@@ -12,6 +12,10 @@ DATEN_PFAD = Path(os.environ.get("HIPPOKRATES_DATEN", Path(__file__).resolve().p
 DB_PFAD = DATEN_PFAD / "hippokrates.db"
 BIBLIOTHEK_PFAD = DATEN_PFAD / "bibliothek"
 
+# Fest vorgegebene Ollama-Adresse (z. B. in Docker: http://host.docker.internal:11434). Ist sie gesetzt,
+# gilt sie immer und lässt sich in der Oberfläche nicht ändern – auch bei einer übernommenen Datenbank.
+OLLAMA_URL_FEST = os.environ.get("HIPPOKRATES_OLLAMA_URL", "").strip()
+
 # Felder, die an die Agenten gehen. Jede Änderung daran löst einen neuen Abgleich aus.
 KLINISCHE_FELDER = {
     "anamnese": "Aktuelle Beschwerden / Anamnese",
@@ -28,7 +32,11 @@ PATIENT_FELDER = ["name", "geburtsdatum", "geschlecht", *KLINISCHE_FELDER]
 STANDARD_EINSTELLUNGEN = {
     # ── Technik ──
     "ollama_url": "http://localhost:11434",
-    "agenten": None,  # Liste von Modellnamen; None = noch nie festgelegt
+    "agenten": None,  # Liste von Modellkennungen; None = noch nie festgelegt
+    "agenten_modus": "auswahl",  # auswahl = Liste oben | alle = jedes verfügbare lokale Chat-Modell
+    "ausgeschlossene_modelle": [],  # im Modus „alle“ nicht verwenden
+    "server_suchen": True,  # LM Studio, llama.cpp, Jan … auf ihren üblichen Ports suchen
+    "zusatz_server": [],  # weitere OpenAI-kompatible Server: [{"name", "url", "api_schluessel"}]
     "embedding_modell": "",
     "top_k": 4,  # Literaturstellen je Suchanfrage
     "parallel": 1,  # gleichzeitig laufende Agenten
@@ -41,6 +49,7 @@ STANDARD_EINSTELLUNGEN = {
     "rueckfragen": True,  # Agenten dürfen Fragen zu fehlenden Angaben stellen
     "auto_abgleich": True,  # Änderungen an den Patientendaten starten sofort einen neuen Abgleich
     "einzelnennungen_einklappen": True,  # Diagnosen, die nur ein Agent nennt, eingeklappt zeigen
+    "netze_aktiv": [],  # eigene neuronale Netze (netze/), die die Agenten befragen dürfen
 }
 
 _SCHEMA = """
@@ -150,10 +159,18 @@ def initialisieren() -> None:
         con.execute("UPDATE agenten SET status='abgebrochen' WHERE status IN ('wartend','laufend')")
 
 
-def einstellungen() -> dict:
+def _gespeichert() -> dict:
     with verbinden() as con:
         zeile = con.execute("SELECT wert FROM einstellungen WHERE id=1").fetchone()
     return {**STANDARD_EINSTELLUNGEN, **(json.loads(zeile["wert"]) if zeile else {})}
+
+
+def _wirksam(werte: dict) -> dict:
+    return {**werte, "ollama_url": OLLAMA_URL_FEST} if OLLAMA_URL_FEST else werte
+
+
+def einstellungen() -> dict:
+    return _wirksam(_gespeichert())
 
 
 def einstellungen_speichern(werte: dict) -> None:
@@ -165,9 +182,15 @@ def einstellungen_speichern(werte: dict) -> None:
 
 
 def einstellungen_aendern(aenderungen: dict) -> tuple[dict, dict]:
-    """Übernimmt einzelne Werte, ohne gleichzeitige Änderungen anderer Werte zu überschreiben. -> (alt, neu)"""
+    """Übernimmt einzelne Werte, ohne gleichzeitige Änderungen anderer Werte zu überschreiben. -> (alt, neu)
+
+    Eine per Umgebung fest vorgegebene Ollama-Adresse wird nicht in die Datenbank geschrieben, damit
+    dieselben Daten auch außerhalb von Docker weiter funktionieren.
+    """
+    if OLLAMA_URL_FEST:
+        aenderungen = {k: v for k, v in aenderungen.items() if k != "ollama_url"}
     with _einstellungen_sperre:
-        alt = einstellungen()
+        alt = _gespeichert()
         neu = {**alt, **aenderungen}
         einstellungen_speichern(neu)
-    return alt, neu
+    return _wirksam(alt), _wirksam(neu)

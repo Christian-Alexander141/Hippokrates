@@ -1,0 +1,25 @@
+[build-system]
+requires = ["setuptools>=77"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "netzwerkzeug"
+version = "0.1.0"
+description = "Selbst geschriebene neuronale Netze als Werkzeug, Middleware oder Chat-Modell in LangChain-Agenten (create_agent)"
+readme = "README.md"
+requires-python = ">=3.11"
+license = "GPL-3.0-or-later"
+dependencies = [
+    "langchain-core>=1.0",
+    "pydantic>=2.6",
+    "numpy>=1.26",
+]
+
+[project.optional-dependencies]
+# create_agent und Middleware stammen aus dem Paket `langchain`
+agent = ["langchain>=1.0"]
+torch = ["torch>=2.2"]
+onnx = ["onnxruntime>=1.17"]
+
+[tool.setuptools.packages.find]
+where = ["src"]

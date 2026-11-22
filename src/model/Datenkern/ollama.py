@@ -4,6 +4,7 @@ import threading
 import time
 import urllib.error
 import urllib.request
+from concurrent.futures import ThreadPoolExecutor
 
 
 ZEITLIMIT = 600  # Sekunden je Modellanfrage
@@ -36,19 +37,48 @@ def _anfrage(url: str, pfad: str, daten: dict | None = None, timeout: float = 90
         raise OllamaFehler(f"Ollama unter {url} nicht erreichbar: {e}") from None
 
 
+_faehigkeiten: dict[str, list[str]] = {}  # digest -> Fähigkeiten laut /api/show (ändert sich nur mit dem Modell)
+
+
+def _faehigkeiten_lesen(url: str, name: str, digest: str) -> list[str] | None:
+    if digest and digest in _faehigkeiten:
+        return _faehigkeiten[digest]
+    try:
+        with _anfrage(url, "/api/show", {"model": name}, timeout=5) as antwort:
+            werte = list(json.load(antwort).get("capabilities") or [])
+    except OllamaFehler:
+        return None  # ältere Ollama-Versionen oder Zeitüberschreitung: Namensheuristik genügt
+    if digest:
+        _faehigkeiten[digest] = werte
+    return werte
+
+
 def modelle(url: str) -> list[dict]:
-    """Installierte Modelle. `cloud` = Anfragen verlassen den Rechner, `embedding` = kein Chat-Modell."""
+    """Installierte Modelle – bei jedem Aufruf neu von Ollama abgefragt.
+
+    `cloud` = Anfragen verlassen den Rechner, `embedding` = kein Chat-Modell. Die Fähigkeiten
+    (completion, tools, thinking, vision, embedding) stammen aus /api/show.
+    """
     with _anfrage(url, "/api/tags", timeout=10) as antwort:
         eintraege = json.load(antwort).get("models", [])
+    with ThreadPoolExecutor(max_workers=8) as pool:
+        faehigkeiten = list(pool.map(lambda m: _faehigkeiten_lesen(url, m["name"], m.get("digest", "")), eintraege))
     liste = []
-    for m in eintraege:
+    for m, faehig in zip(eintraege, faehigkeiten):
         name = m["name"]
-        familien = " ".join((m.get("details") or {}).get("families") or []).lower()
+        details = m.get("details") or {}
+        familien = " ".join(details.get("families") or []).lower()
+        embedding = "embedding" in faehig if faehig else ("embed" in name.lower() or "bert" in familien)
         liste.append({
             "name": name,
             "cloud": bool(m.get("remote_host")) or "cloud" in name.split(":")[-1],
-            "embedding": "embed" in name.lower() or "bert" in familien,
+            "embedding": embedding,
+            "faehigkeiten": faehig or (["embedding"] if embedding else ["completion"]),
             "groesse": m.get("size") or 0,
+            "parameter": details.get("parameter_size") or "",
+            "quantisierung": details.get("quantization_level") or "",
+            "familie": details.get("family") or "",
+            "geaendert": m.get("modified_at") or "",
         })
     return sorted(liste, key=lambda m: m["name"])
 

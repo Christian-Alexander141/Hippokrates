@@ -6,7 +6,7 @@ import time
 from concurrent.futures import ThreadPoolExecutor
 from datetime import date
 
-from . import agent, db, konsens, ollama, rag
+from . import agent, db, konsens, netze, ollama, rag, sprachmodelle
 
 _sperre = threading.Lock()
 _abbrueche: dict[int, threading.Event] = {}  # patient_id -> Abbruchsignal des aktiven Abgleichs
@@ -17,19 +17,27 @@ def aktuelle_einstellungen() -> dict:
     """Einstellungen; beim allerersten Aufruf werden bis zu drei lokale Modelle als Agenten vorbelegt."""
     einst = db.einstellungen()
     if einst["agenten"] is None or not einst["embedding_modell"]:
-        try:
-            modelle = ollama.modelle(einst["ollama_url"])
-        except ollama.OllamaFehler:
+        modelle = sprachmodelle.ermitteln(einst)["modelle"]
+        if not modelle:
             return {**einst, "agenten": einst["agenten"] or []}
-        lokal = [m for m in modelle if not m["cloud"]]
+        lokal = [m for m in modelle if not m["cloud"] and m["quelle"] != "netz"]
         vorbelegung = {}
         if einst["agenten"] is None:
-            chat = sorted((m for m in lokal if not m["embedding"]), key=lambda m: -m["groesse"])
-            vorbelegung["agenten"] = [m["name"] for m in chat[:3]]
+            vorbelegung["agenten"] = sprachmodelle.lokale_chatmodelle(lokal)[:3]
         if not einst["embedding_modell"]:
-            vorbelegung["embedding_modell"] = next((m["name"] for m in lokal if m["embedding"]), "")
+            vorbelegung["embedding_modell"] = next((m["id"] for m in lokal if m["embedding"]), "")
         _, einst = db.einstellungen_aendern(vorbelegung)
     return einst
+
+
+def agenten_aufloesen(einst: dict) -> tuple[list[str], set[str]]:
+    """Modelle für den nächsten Abgleich – mit frisch ermittelter Verfügbarkeit. -> (Modelle, nicht verfügbare)"""
+    verfuegbar = sprachmodelle.ermitteln(einst)["modelle"]
+    if einst["agenten_modus"] == "alle":
+        return sprachmodelle.lokale_chatmodelle(verfuegbar, einst["ausgeschlossene_modelle"]), set()
+    vorhanden = {m["id"] for m in verfuegbar if not m["embedding"]}
+    modelle = list(einst["agenten"] or [])
+    return modelle, {m for m in modelle if m not in vorhanden}
 
 
 def alter(geburtsdatum: str) -> int | None:
@@ -83,20 +91,23 @@ def abbrechen(patient_id: int) -> None:
         signal.set()
 
 
-def _rahmen(einst: dict) -> dict:
+def _rahmen(einst: dict, modelle: list[str]) -> dict:
     """Vorgaben, unter denen ein Abgleich läuft – wird mit dem Ergebnis gespeichert."""
     return {
-        "agenten": einst["agenten"],
+        "agenten": modelle,
+        "agenten_modus": einst["agenten_modus"],
         "buecher": rag.aktive_buecher(einst),
         "internet": einst["internet"],
         "rueckfragen": einst["rueckfragen"],
         "max_diagnosen": einst["max_diagnosen"],
+        "netze": [w.name for w in netze.aktive(einst)],
     }
 
 
 def starten(patient: dict) -> int:
+    """Legt den Abgleich an und startet ihn im Hintergrund. Welche Modelle mitarbeiten, wird dort
+    frisch ermittelt – im Modus „alle“ also jedes Mal mit den gerade verfügbaren lokalen Modellen."""
     einst = aktuelle_einstellungen()
-    modelle = einst["agenten"]
     signal = threading.Event()
     with _sperre:
         alt = _abbrueche.get(patient["id"])
@@ -108,12 +119,22 @@ def starten(patient: dict) -> int:
                         "WHERE patient_id=? AND status='laufend'", (db.jetzt(), patient["id"]))
             lauf_id = con.execute(
                 "INSERT INTO laeufe (patient_id, daten_hash, status, gestartet, rahmen) VALUES (?,?,?,?,?)",
-                (patient["id"], daten_hash(patient), "laufend", db.jetzt(), json.dumps(_rahmen(einst)))).lastrowid
-            con.executemany("INSERT INTO agenten (lauf_id, nr, modell, status) VALUES (?,?,?,'wartend')",
-                            [(lauf_id, nr, m) for nr, m in enumerate(modelle, 1)])
+                (patient["id"], daten_hash(patient), "laufend", db.jetzt(), None)).lastrowid
     threading.Thread(target=_lauf, args=(lauf_id, patient["id"], patiententext(patient), einst, signal),
                      daemon=True).start()
     return lauf_id
+
+
+def _vorbereiten(lauf_id: int, einst: dict) -> tuple[list[str], set[str]]:
+    modelle, fehlend = agenten_aufloesen(einst)
+    with db.verbinden() as con:
+        con.execute("UPDATE laeufe SET rahmen=? WHERE id=?", (json.dumps(_rahmen(einst, modelle)), lauf_id))
+        con.executemany("INSERT INTO agenten (lauf_id, nr, modell, status, fehler) VALUES (?,?,?,?,?)",
+                        [(lauf_id, nr, m, "fehler" if m in fehlend else "wartend",
+                          "Modell derzeit nicht verfügbar – nicht installiert oder Modellserver nicht gestartet."
+                          if m in fehlend else None)
+                         for nr, m in enumerate(modelle, 1)])
+    return modelle, fehlend
 
 
 def _agent_setzen(lauf_id: int, nr: int, **werte) -> None:
@@ -146,15 +167,17 @@ def _ein_agent(lauf_id: int, nr: int, modell: str, text: str, einst: dict, signa
 def _lauf(lauf_id: int, patient_id: int, text: str, einst: dict, signal: threading.Event) -> None:
     status, meldung, rangliste = "fehler", "", None
     try:
+        modelle, fehlend = _vorbereiten(lauf_id, einst)
         with _einzeln:
-            modelle = einst["agenten"]
             if not modelle:
-                meldung = "Keine Agenten konfiguriert – bitte unter „Technik“ Sprachmodelle auswählen."
+                meldung = ("Keine lokalen Sprachmodelle gefunden – bitte Ollama oder einen Modellserver starten."
+                           if einst["agenten_modus"] == "alle"
+                           else "Keine Agenten konfiguriert – bitte unter „Modelle & Technik“ Sprachmodelle auswählen.")
             else:
+                einsatz = [(nr, m) for nr, m in enumerate(modelle, 1) if m not in fehlend]
                 with ThreadPoolExecutor(max_workers=max(1, einst["parallel"])) as pool:
                     ergebnisse = list(pool.map(
-                        lambda paar: _ein_agent(lauf_id, paar[0], paar[1], text, einst, signal),
-                        enumerate(modelle, 1)))
+                        lambda paar: _ein_agent(lauf_id, paar[0], paar[1], text, einst, signal), einsatz))
                 erfolgreich = [e for e in ergebnisse if e]
                 if signal.is_set():
                     status, meldung = "abgebrochen", "Durch neueren Abgleich ersetzt"

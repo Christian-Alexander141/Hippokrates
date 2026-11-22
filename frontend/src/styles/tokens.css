@@ -1,0 +1,137 @@
+/* Designsystem – klinisch ruhig, hohe Lesbarkeit, Statusfarben nach Bedeutung.
+   Hell/Dunkel folgen dem System; data-theme am <html> erzwingt eine Variante. */
+
+:root {
+  --bg: #f3f5f8;
+  --surface: #ffffff;
+  --surface-2: #f8fafc;
+  --surface-3: #eef2f6;
+  --surface-hover: #f1f5f9;
+  --border: #e2e8f0;
+  --border-strong: #cbd5e1;
+
+  --text: #0b1726;
+  --text-2: #475569;
+  --text-3: #8391a5;
+  --text-invers: #ffffff;
+
+  --primary: #0b7285;
+  --primary-hover: #095f6f;
+  --primary-soft: #e2f3f6;
+  --primary-text: #075564;
+  --primary-ring: rgb(11 114 133 / 0.22);
+  --primary-on: #ffffff;
+
+  --ok: #0f7b53;
+  --ok-soft: #e1f4ea;
+  --warn: #b45309;
+  --warn-soft: #fdf1df;
+  --danger: #c42b2b;
+  --danger-soft: #fdeceb;
+  --info: #2459c9;
+  --info-soft: #e7eefc;
+  --neutral-soft: #eef2f6;
+
+  --rail: #0a1724;
+  --rail-2: #112233;
+  --rail-text: #8fa3b8;
+  --rail-text-hell: #e2ebf3;
+  --rail-akzent: #2cc0de;
+
+  --hero-1: #1597b6;
+  --hero-2: #0b7285;
+  --hero-3: #08485a;
+
+  --schatten-1: 0 1px 2px rgb(15 23 42 / 0.05), 0 1px 4px rgb(15 23 42 / 0.03);
+  --schatten-2: 0 4px 12px rgb(15 23 42 / 0.06), 0 1px 3px rgb(15 23 42 / 0.05);
+  --schatten-3: 0 18px 44px rgb(15 23 42 / 0.16), 0 3px 10px rgb(15 23 42 / 0.06);
+
+  --radius-s: 7px;
+  --radius: 10px;
+  --radius-l: 14px;
+
+  --schrift: "Inter Variable", "Inter", "Segoe UI Variable Text", "Segoe UI", system-ui, -apple-system, Roboto, sans-serif;
+  --mono: "JetBrains Mono Variable", ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+
+  --rail-breite: 232px;
+  --liste-breite: 304px;
+  --kopf-hoehe: 60px;
+
+  color-scheme: light;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0a1017;
+    --surface: #0f1820;
+    --surface-2: #0d151d;
+    --surface-3: #16212c;
+    --surface-hover: #142029;
+    --border: #1d2a36;
+    --border-strong: #2a3b4b;
+    --text: #e5edf4;
+    --text-2: #a5b3c2;
+    --text-3: #6b7d90;
+    --primary: #2eb3cf;
+    --primary-hover: #4cc3dc;
+    --primary-soft: #0d2a33;
+    --primary-text: #8edcef;
+    --primary-ring: rgb(46 179 207 / 0.3);
+    --primary-on: #03212a;
+    --ok: #3ccf95;
+    --ok-soft: #0e2a20;
+    --warn: #f5b13d;
+    --warn-soft: #2b2212;
+    --danger: #f77b7b;
+    --danger-soft: #2e1517;
+    --info: #7aa5ff;
+    --info-soft: #14203a;
+    --neutral-soft: #16212c;
+    --rail: #060d14;
+    --rail-2: #0e1a25;
+    --hero-1: #137f99;
+    --hero-2: #0b5f70;
+    --hero-3: #073746;
+    --schatten-1: none;
+    --schatten-2: 0 4px 14px rgb(0 0 0 / 0.35);
+    --schatten-3: 0 18px 44px rgb(0 0 0 / 0.55);
+    color-scheme: dark;
+  }
+}
+
+:root[data-theme="dark"] {
+  --bg: #0a1017;
+  --surface: #0f1820;
+  --surface-2: #0d151d;
+  --surface-3: #16212c;
+  --surface-hover: #142029;
+  --border: #1d2a36;
+  --border-strong: #2a3b4b;
+  --text: #e5edf4;
+  --text-2: #a5b3c2;
+  --text-3: #6b7d90;
+  --primary: #2eb3cf;
+  --primary-hover: #4cc3dc;
+  --primary-soft: #0d2a33;
+  --primary-text: #8edcef;
+  --primary-ring: rgb(46 179 207 / 0.3);
+  --primary-on: #03212a;
+  --ok: #3ccf95;
+  --ok-soft: #0e2a20;
+  --warn: #f5b13d;
+  --warn-soft: #2b2212;
+  --danger: #f77b7b;
+  --danger-soft: #2e1517;
+  --info: #7aa5ff;
+  --info-soft: #14203a;
+  --neutral-soft: #16212c;
+  --rail: #060d14;
+  --rail-2: #0e1a25;
+  --hero-1: #137f99;
+  --hero-2: #0b5f70;
+  --hero-3: #073746;
+  --schatten-1: none;
+  --schatten-2: 0 4px 14px rgb(0 0 0 / 0.35);
+  --schatten-3: 0 18px 44px rgb(0 0 0 / 0.55);
+  color-scheme: dark;
+}

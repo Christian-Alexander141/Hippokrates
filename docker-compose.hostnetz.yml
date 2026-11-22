@@ -1,0 +1,17 @@
+# Linux-Variante: Der Container teilt das Netz des Hosts. Ollama (127.0.0.1:11434) und lokale
+# Modellserver sind dann ohne jede Umkonfiguration erreichbar.
+#
+#   docker compose -f docker-compose.yml -f docker-compose.hostnetz.yml up -d --build
+#
+# Hippokrates lauscht dabei direkt auf 127.0.0.1:8000 des Hosts (nicht im Netzwerk sichtbar).
+
+services:
+  hippokrates:
+    network_mode: host
+    ports: !reset []
+    extra_hosts: !reset []
+    environment:
+      HIPPOKRATES_HOST: 127.0.0.1
+      HIPPOKRATES_PORT: ${HIPPOKRATES_PORT:-8000}
+      HIPPOKRATES_OLLAMA_URL: ${HIPPOKRATES_OLLAMA_URL:-http://127.0.0.1:11434}
+      HIPPOKRATES_MODELL_HOST: localhost

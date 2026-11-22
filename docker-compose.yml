@@ -1,0 +1,36 @@
+# Hippokrates im Container – die Sprachmodelle laufen weiterhin auf dem Host.
+#
+#   docker compose up -d --build          → http://127.0.0.1:8000
+#
+# Linux: Der Container erreicht den Host unter host.docker.internal. Ollama lauscht standardmäßig nur
+# auf 127.0.0.1 und ist darüber NICHT erreichbar. Entweder Ollama auf der Docker-Bridge lauschen lassen
+# (siehe docs/docker.md) oder die Variante mit Host-Netz verwenden:
+#
+#   docker compose -f docker-compose.yml -f docker-compose.hostnetz.yml up -d --build
+#
+# Docker Desktop (macOS, Windows): funktioniert ohne weitere Einstellungen.
+
+services:
+  hippokrates:
+    build:
+      context: .
+      args:
+        ZUSATZPAKETE: ${HIPPOKRATES_ZUSATZPAKETE:-}
+    image: hippokrates:latest
+    container_name: hippokrates
+    restart: unless-stopped
+    # Nur vom eigenen Rechner erreichbar – die Anwendung hat keine Benutzeranmeldung.
+    ports:
+      - "127.0.0.1:${HIPPOKRATES_PORT:-8000}:8000"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    environment:
+      # Fest vorgegeben; in der Oberfläche dann nicht änderbar.
+      HIPPOKRATES_OLLAMA_URL: ${HIPPOKRATES_OLLAMA_URL:-http://host.docker.internal:11434}
+      # Hier sucht Hippokrates LM Studio, llama.cpp, Jan, GPT4All … auf ihren üblichen Ports.
+      HIPPOKRATES_MODELL_HOST: host.docker.internal
+    # Dateien in ./daten gehören dann dem eigenen Benutzer (wie ohne Docker).
+    user: "${HIPPOKRATES_UID:-1000}:${HIPPOKRATES_GID:-1000}"
+    volumes:
+      - ./daten:/daten          # Patientendaten, Fachbibliothek, Suchindex (dieselben Daten wie ohne Docker)
+      - ./netze:/app/netze:ro   # eigene neuronale Netze – neue Dateien werden ohne Neustart erkannt

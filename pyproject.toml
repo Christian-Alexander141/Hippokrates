@@ -1,0 +1,37 @@
+[build-system]
+requires = ["setuptools>=77"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "hippokrates"
+version = "0.3.0"
+description = "Lokale Diagnoseunterstützung: mehrere KI-Agenten mit verschiedenen Sprachmodellen und ein deterministischer Konsens"
+requires-python = ">=3.12"
+license = "GPL-3.0-or-later"
+dependencies = [
+    "fastapi>=0.115",
+    "uvicorn[standard]>=0.30",
+    "pypdf>=5.0",
+    "numpy>=1.26",
+    # LangChain-Agenten (create_agent) und Ollama-Anbindung für eigene Netze
+    "langchain>=1.0",
+    "langchain-ollama>=1.0",
+    # Bibliothek für eigene neuronale Netze – liegt in pakete/netzwerkzeug und wird mitinstalliert:
+    #   pip install -e pakete/netzwerkzeug -e .
+    "netzwerkzeug",
+]
+
+[project.optional-dependencies]
+# Frameworks für eigene Netze, z. B.  pip install -e pakete/netzwerkzeug -e ".[torch]"
+torch = ["torch>=2.2"]
+onnx = ["onnxruntime>=1.17"]
+sklearn = ["scikit-learn>=1.4"]
+
+# Die Anwendung selbst wird nicht als Paket installiert (Start: python src/main.py);
+# diese Datei beschreibt nur Abhängigkeiten und Metadaten.
+[tool.setuptools]
+packages = []
+
+# Für uv:  uv sync  (installiert netzwerkzeug editierbar aus dem Repository)
+[tool.uv.sources]
+netzwerkzeug = { path = "pakete/netzwerkzeug", editable = true }

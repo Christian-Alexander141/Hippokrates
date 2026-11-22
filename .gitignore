@@ -16,3 +16,14 @@ __pycache__/
 Thumbs.db
 # Laufzeitdaten (Patientendaten, Bibliothek, Index)
 daten/
+
+# Oberfläche (React): Abhängigkeiten und Build
+frontend/node_modules/
+frontend/dist/
+frontend/*.tsbuildinfo
+*.egg-info/
+pakete/*/build/
+
+# Von installieren.sh erzeugte lokale Konfiguration
+.env
+.env.vorher

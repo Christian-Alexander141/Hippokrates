@@ -7,13 +7,19 @@ Schritte (Schlüssel für die Fortschrittsanzeige):
   plant       – formuliert Suchanfragen für Fachbibliothek und ggf. PubMed
   bibliothek  – durchsucht die berücksichtigten Fachbücher
   internet    – sucht in PubMed-Abstracts (nur wenn im Adminbereich erlaubt)
+  netze       – wertet freigeschaltete eigene neuronale Netze aus (Bibliothek netzwerkzeug)
   diagnose    – erstellt die Differentialdiagnosen und ggf. Rückfragen
+
+Die eigenen Netze werden wie Werkzeuge eines LangChain-Agenten genutzt: Der Agent überträgt in der
+Planungsphase die Eingaben aus der Akte (Schema = Eingabemodell des Netzes), das Netz rechnet
+deterministisch, sein Ergebnis geht als zitierbare Quelle in die Diagnose ein. Dieser feste Ablauf
+funktioniert auch mit kleinen Modellen ohne zuverlässige Werkzeugaufrufe.
 """
 import json
 import threading
 from typing import Callable
 
-from . import ollama, rag, web
+from . import netze, ollama, rag, sprachmodelle, web
 
 MAX_SUCHANFRAGEN = 4
 MAX_WEBANFRAGEN = 2
@@ -49,6 +55,8 @@ def _pruefen(abbruch: threading.Event) -> None:
 
 
 def _quellenkopf(q: dict) -> str:
+    if q["art"] == "netz":
+        return f"[{q['nr']}] {q['titel']}"
     if q["art"] == "web":
         return f"[{q['nr']}] PubMed: {q['titel']} ({q['fundstelle']})"
     return f"[{q['nr']}] Fachbuch „{q['datei']}“" + (f", S. {q['seite']}" if q["seite"] else "")
@@ -56,16 +64,18 @@ def _quellenkopf(q: dict) -> str:
 
 def ausfuehren(modell: str, patiententext: str, einst: dict, abbruch: threading.Event,
                fortschritt: Callable[[str], None]) -> dict:
-    url, denken = einst["ollama_url"], einst["denken"]
+    denken = einst["denken"]
     bibliothek = bool(rag.aktive_buecher(einst))
     internet = bool(einst["internet"])
+    netz_werkzeuge = netze.aktive(einst)
+    netz_eingaben: dict[str, dict] = {}
     buch_anfragen: list[str] = []
     web_anfragen: list[str] = []
     quellen: list[dict] = []
     hinweise: list[str] = []
 
     # ── 1. Recherche planen ──
-    if bibliothek or internet:
+    if bibliothek or internet or netz_werkzeuge:
         fortschritt("plant")
         eigenschaften, auftraege, beispiel = {}, [], {}
         if bibliothek:
@@ -79,7 +89,11 @@ def ausfuehren(modell: str, patiententext: str, einst: dict, abbruch: threading.
             auftraege.append(f"'pubmed': bis zu {MAX_WEBANFRAGEN} englische Suchbegriffe für PubMed aus "
                              "medizinischen Fachtermini (z. B. \"scurvy gingival bleeding\"). Keine Namen, "
                              "keine persönlichen Angaben.")
-        antwort = ollama.chat_json(url, modell, [
+        if netz_werkzeuge:
+            eigenschaften["netze"], auftrag = netze.planungsschema(netz_werkzeuge)
+            beispiel["netze"] = {w.name: {"anwendbar": True, "...": "..."} for w in netz_werkzeuge}
+            auftraege.append(auftrag)
+        antwort = sprachmodelle.chat_json(einst, modell, [
             {"role": "system", "content": _SYSTEM},
             {"role": "user", "content": (
                 f"Patientendaten:\n{patiententext}\n\n"
@@ -90,6 +104,11 @@ def ausfuehren(modell: str, patiententext: str, einst: dict, abbruch: threading.
         ], {"type": "object", "properties": eigenschaften, "required": list(eigenschaften)}, abbruch, denken)
         buch_anfragen = _liste(antwort.get("suchanfragen"), MAX_SUCHANFRAGEN) if bibliothek else []
         web_anfragen = _liste(antwort.get("pubmed"), MAX_WEBANFRAGEN) if internet else []
+        geplant = antwort.get("netze") if isinstance(antwort.get("netze"), dict) else {}
+        for w in netz_werkzeuge:
+            eintrag = geplant.get(w.name)
+            if isinstance(eintrag, dict) and eintrag.get("anwendbar") is True:
+                netz_eingaben[w.name] = {k: v for k, v in eintrag.items() if k != "anwendbar"}
 
     # ── 2. Fachbibliothek ──
     if buch_anfragen:
@@ -122,16 +141,31 @@ def ausfuehren(modell: str, patiententext: str, einst: dict, abbruch: threading.
             hinweise.append("PubMed lieferte zu den Suchbegriffen keine Treffer.")
     elif internet:
         hinweise.append("Der Agent hat keine PubMed-Suchbegriffe formuliert.")
+
+    # ── 4. Eigene neuronale Netze ──
+    if netz_eingaben:
+        fortschritt("netze")
+        for w in netz_werkzeuge:
+            if w.name not in netz_eingaben:
+                continue
+            _pruefen(abbruch)
+            try:
+                quellen.append(netze.auswerten(w, netz_eingaben[w.name]))
+            except Exception as e:  # ein fehlerhaftes Netz darf den Agenten nicht aufhalten
+                hinweise.append(f"Netz „{w.name}“: {e}")
+    for w in netz_werkzeuge:
+        if w.name not in netz_eingaben:
+            hinweise.append(f"Netz „{w.name}“ nicht befragt – die nötigen Eingaben fehlen laut Agent in der Akte.")
     for nr, q in enumerate(quellen, 1):
         q["nr"] = nr
 
-    # ── 4. Diagnosen ──
+    # ── 5. Diagnosen ──
     _pruefen(abbruch)
     fortschritt("diagnose")
     if quellen:
         literatur = "Rechercheergebnisse:\n\n" + "\n\n".join(f"{_quellenkopf(q)}\n{q['text']}" for q in quellen)
-        quellenhinweis = ("'quellen': die Nummern der Literaturstellen, die die Diagnose stützen "
-                          "(leere Liste, wenn keine passt).")
+        quellenhinweis = ("'quellen': die Nummern der Literaturstellen bzw. Netzergebnisse, die die Diagnose "
+                          "stützen (leere Liste, wenn keine passt).")
     else:
         literatur = "Es liegen keine Rechercheergebnisse vor."
         quellenhinweis = "'quellen': leere Liste."
@@ -157,7 +191,7 @@ def ausfuehren(modell: str, patiententext: str, einst: dict, abbruch: threading.
             "eingrenzen würden. Frage nichts, was in den Patientendaten bereits beantwortet ist. Leere Liste, "
             "wenn nichts Wesentliches fehlt."
         )
-    antwort = ollama.chat_json(url, modell, [
+    antwort = sprachmodelle.chat_json(einst, modell, [
         {"role": "system", "content": _SYSTEM},
         {"role": "user", "content": (
             f"Patientendaten:\n{patiententext}\n\n{literatur}\n\n"
@@ -182,7 +216,9 @@ def ausfuehren(modell: str, patiententext: str, einst: dict, abbruch: threading.
         })
     return {
         "suchanfragen": [{"art": "buch", "text": a} for a in buch_anfragen]
-                        + [{"art": "web", "text": a} for a in web_anfragen],
+                        + [{"art": "web", "text": a} for a in web_anfragen]
+                        + [{"art": "netz", "text": f"{n}({', '.join(f'{k}={v}' for k, v in e.items())})"}
+                           for n, e in netz_eingaben.items()],
         "quellen": quellen,
         "diagnosen": diagnosen[:n],
         "rueckfragen": _liste(antwort.get("rueckfragen"), MAX_RUECKFRAGEN) if einst["rueckfragen"] else [],
